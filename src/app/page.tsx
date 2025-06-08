@@ -1,5 +1,6 @@
 "use client";
 import React, { useRef, useState } from "react";
+import Image from "next/image";
 
 const defaultSounds = [
   { label: "Ding", value: "/sounds/ding.wav" },
@@ -133,9 +134,16 @@ export default function TimerSoundApp() {
   return (
     <div className="min-h-screen bg-neutral-50 flex flex-col items-center justify-center p-0">
       <div className="w-full max-w-xl mx-auto bg-white rounded-2xl shadow-lg px-8 py-10 border border-neutral-100">
-        <h1 className="text-2xl font-bold mb-6 text-neutral-900 tracking-tight">
-          Custom Timer with Sound Triggers
-        </h1>
+        <div className="flex items-center gap-2 mb-2">
+          <Image src="/clock.svg" alt="timer icon" width={32} height={32} />
+          <h1 className="text-3xl font-bold text-neutral-900 tracking-tight">
+            Freedive Timer
+          </h1>
+        </div>
+        <p className="text-neutral-600 mb-6">
+          Enter your total dive time and set sound cues for important moments.
+          When you’re ready, hit Start and focus on your breath.
+        </p>
 
         <div className="flex gap-3 items-center mb-8">
           <label className="font-medium text-neutral-700 shrink-0">
@@ -268,9 +276,9 @@ export default function TimerSoundApp() {
           </div>
         )}
       </div>
-      <div className="mt-10 text-neutral-400 text-xs text-center opacity-80">
-        All sounds play client-side only. No uploads, no server processing.
-      </div>
+      <p className="mt-10 text-neutral-500 text-xs text-center">
+        Happy diving!
+      </p>
     </div>
   );
 }

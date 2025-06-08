@@ -1,4 +1,10 @@
-# Custom Visual Timer with Local Sound Triggers
+# Freedive Timer
 
-A modern, browser-based timer app that lets you schedule any sound at any moment in a countdown.  
-Choose from default sounds or upload your own. No server. No data leaves your device.
+Freedive Timer helps you plan apnea training sessions with sound cues at precise moments.
+
+## Usage
+
+1. Enter the total countdown time in seconds.
+2. Add sound triggers at any second mark and choose a default or custom sound.
+3. Press **Start** to begin your dive timer.
+4. The app runs completely offline in your browser.
