@@ -26,9 +26,7 @@ export default function TimerSoundApp() {
   const [totalSeconds, setTotalSeconds] = useState<number>(
     DEFAULT_TOTAL_SECONDS,
   );
-  const [totalSecondsInput, setTotalSecondsInput] = useState(
-    DEFAULT_TOTAL_SECONDS.toString(),
-  );
+  const [totalSecondsInput, setTotalSecondsInput] = useState("");
   const [currentSecond, setCurrentSecond] = useState<number | null>(null);
   const [running, setRunning] = useState(false);
   const [sounds, setSounds] = useState<SoundConfig[]>([]);
@@ -37,25 +35,16 @@ export default function TimerSoundApp() {
 
   const handleTotalSecondsChange = (val: string) => {
     const digits = val.replace(/\D/g, "");
-    if (digits === "") {
-      setTotalSecondsInput(DEFAULT_TOTAL_SECONDS.toString());
-      setTotalSeconds(DEFAULT_TOTAL_SECONDS);
-    } else {
-      setTotalSecondsInput(digits);
-      setTotalSeconds(Number(digits));
-    }
+    setTotalSecondsInput(digits);
+    setTotalSeconds(digits === "" ? DEFAULT_TOTAL_SECONDS : Number(digits));
   };
 
   const handleSoundSecondChange = (index: number, val: string) => {
     const digits = val.replace(/\D/g, "");
-    const patch: Partial<SoundConfig> = {};
-    if (digits === "") {
-      patch.secondInput = "1";
-      patch.second = 1;
-    } else {
-      patch.secondInput = digits;
-      patch.second = Number(digits);
-    }
+    const patch: Partial<SoundConfig> = {
+      secondInput: digits,
+      second: digits === "" ? 1 : Number(digits),
+    };
     updateSound(index, patch);
   };
 
@@ -105,7 +94,7 @@ export default function TimerSoundApp() {
       ...sounds,
       {
         second: 1,
-        secondInput: "1",
+        secondInput: "",
         label: "Sound",
         src: DEFAULT_SOUND,
         sourceType: "default",
@@ -286,7 +275,7 @@ type TotalTimeInputProps = {
 };
 
 function TotalTimeInput({ value, running, onChange }: TotalTimeInputProps) {
-  const isDefault = value === DEFAULT_TOTAL_SECONDS.toString();
+  const isDefault = value === "";
   return (
     <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center mb-8 w-full">
       <label
@@ -335,7 +324,7 @@ function SoundRow({
   onClearUpload,
   onRemove,
 }: SoundRowProps) {
-  const isDefault = sound.secondInput === "1";
+  const isDefault = sound.secondInput === "";
   return (
     <div className="flex flex-col items-center sm:flex-row sm:flex-wrap sm:items-center gap-2 mb-2 border-b border-neutral-100 pb-2">
       <label className="text-neutral-600">At</label>

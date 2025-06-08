@@ -1,4 +1,10 @@
-import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  act,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import TimerSoundApp from "@/app/page";
 
@@ -73,12 +79,16 @@ describe("TimerSoundApp", () => {
     const input = screen.getByLabelText(/total time/i) as HTMLInputElement;
     fireEvent.change(input, { target: { value: "" } });
     expect(input.value).toBe("");
-<<<<<<< ours
-    expect(input.placeholder).toBe("60");
-=======
     expect(input).toHaveAttribute("placeholder", "60");
->>>>>>> theirs
     expect(input).toHaveClass("text-neutral-400");
+  });
+
+  it("allows entering '1' for sound seconds", () => {
+    render(<TimerSoundApp />);
+    fireEvent.click(screen.getByRole("button", { name: /add sound/i }));
+    const secondInput = screen.getByPlaceholderText("1") as HTMLInputElement;
+    fireEvent.change(secondInput, { target: { value: "1" } });
+    expect(secondInput.value).toBe("1");
   });
 
   it("shows filename after uploading custom sound and clears on remove", async () => {
@@ -92,7 +102,9 @@ describe("TimerSoundApp", () => {
         screen.getByRole("button", { name: /remove custom file/i }),
       ).toBeInTheDocument(),
     );
-    const removeBtn = screen.getByRole("button", { name: /remove custom file/i });
+    const removeBtn = screen.getByRole("button", {
+      name: /remove custom file/i,
+    });
     fireEvent.click(removeBtn);
     expect(screen.getByLabelText(/upload custom sound/i)).toBeInTheDocument();
   });
