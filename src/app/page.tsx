@@ -1,6 +1,11 @@
 "use client";
 import React, { useRef, useState } from "react";
 import Image from "next/image";
+import {
+  saveSound,
+  deleteSound,
+  getSound,
+} from "../idb";
 
 const defaultSounds = [
   { label: "Ding", value: "/sounds/ding.wav" },
@@ -51,22 +56,41 @@ export default function TimerSoundApp() {
   const STORAGE_KEY = "freedive-timer-state";
 
   React.useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        setTotalSecondsInput(parsed.totalSecondsInput ?? "");
-        setTotalSeconds(
-          parsed.totalSeconds ?? DEFAULT_TOTAL_SECONDS,
-        );
-        setIncludeCountdown(parsed.includeCountdown ?? false);
-        if (Array.isArray(parsed.sounds)) {
-          setSounds(parsed.sounds);
+    const load = async () => {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          setTotalSecondsInput(parsed.totalSecondsInput ?? "");
+          setTotalSeconds(
+            parsed.totalSeconds ?? DEFAULT_TOTAL_SECONDS,
+          );
+          setIncludeCountdown(parsed.includeCountdown ?? false);
+          if (Array.isArray(parsed.sounds)) {
+            const loaded = await Promise.all(
+              parsed.sounds.map(async (s: SoundConfig) => {
+                if (s.sourceType === "custom") {
+                  const data = await getSound(s.id);
+                  if (data) {
+                    const url = URL.createObjectURL(data.blob);
+                    s.customURL = url;
+                    s.customFile = new File([data.blob], data.name, {
+                      type: data.blob.type,
+                    });
+                    s.src = url;
+                  }
+                }
+                return s;
+              }),
+            );
+            setSounds(loaded);
+          }
         }
+      } catch {
+        /* ignore malformed data */
       }
-    } catch {
-      /* ignore malformed data */
-    }
+    };
+    load();
   }, []);
 
   React.useEffect(() => {
@@ -76,7 +100,7 @@ export default function TimerSoundApp() {
         second,
         secondInput,
         label,
-        src,
+        src: sourceType === "default" ? src : undefined,
         sourceType,
       }),
     );
@@ -116,6 +140,8 @@ export default function TimerSoundApp() {
     const file = e.target.files?.[0];
     if (!file) return;
     const url = URL.createObjectURL(file);
+    const id = sounds[index]?.id;
+    if (id) saveSound(id, { name: file.name, blob: file });
     setSounds((prev) =>
       prev.map((s, i) =>
         i === index
@@ -133,6 +159,8 @@ export default function TimerSoundApp() {
 
   // Select a default sound
   const selectDefaultSound = (index: number, value: string) => {
+    const id = sounds[index]?.id;
+    if (id) deleteSound(id);
     setSounds((prev) =>
       prev.map((s, i) =>
         i === index
@@ -174,11 +202,17 @@ export default function TimerSoundApp() {
       prev.map((s) => (s.id === id ? { ...s, isRemoving: true } : s)),
     );
     setTimeout(() => {
+      const sound = sounds.find((s) => s.id === id);
+      if (sound?.sourceType === "custom") {
+        deleteSound(id);
+      }
       setSounds((prev) => prev.filter((s) => s.id !== id));
     }, 200);
   };
 
   const clearCustomFile = (index: number) => {
+    const id = sounds[index]?.id;
+    if (id) deleteSound(id);
     setSounds((prev) =>
       prev.map((s, i) =>
         i === index

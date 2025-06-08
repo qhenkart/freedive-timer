@@ -6,7 +6,22 @@ import {
   act,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+const store = new Map<string, any>();
+jest.mock("@/idb", () => ({
+  saveSound: jest.fn((id: string, data: any) => {
+    store.set(id, data);
+    return Promise.resolve();
+  }),
+  getSound: jest.fn((id: string) => Promise.resolve(store.get(id))),
+  deleteSound: jest.fn((id: string) => {
+    store.delete(id);
+    return Promise.resolve();
+  }),
+  listSoundIds: jest.fn(() => Promise.resolve(Array.from(store.keys()))),
+}));
+
 import TimerSoundApp from "@/app/page";
+import { listSoundIds, getSound } from "@/idb";
 
 beforeAll(() => {
   // Mock the Audio constructor to avoid errors in jsdom
@@ -232,7 +247,7 @@ describe("TimerSoundApp", () => {
     });
   });
 
-  it("loads configuration from localStorage", () => {
+  it("loads configuration from localStorage", async () => {
     const stored = {
       totalSecondsInput: "80",
       totalSeconds: 80,
@@ -250,10 +265,27 @@ describe("TimerSoundApp", () => {
     };
     localStorage.setItem("freedive-timer-state", JSON.stringify(stored));
     render(<TimerSoundApp />);
-    const input = screen.getByLabelText(/total time/i) as HTMLInputElement;
-    expect(input.value).toBe("80");
-    const select = screen.getByRole("combobox") as HTMLSelectElement;
-    expect(select.value).toBe("/sounds/ding.wav");
-    expect(screen.getByLabelText(/include countdown/i)).toBeChecked();
+    const input = await screen.findByLabelText(/total time/i);
+    expect((input as HTMLInputElement).value).toBe("80");
+    const select = await screen.findByRole("combobox");
+    expect((select as HTMLSelectElement).value).toBe("/sounds/ding.wav");
+    expect(await screen.findByLabelText(/include countdown/i)).toBeChecked();
+  });
+
+  it("persists custom sound in indexeddb", async () => {
+    const { unmount } = render(<TimerSoundApp />);
+    fireEvent.click(screen.getByRole("button", { name: /add sound/i }));
+    const fileInput = screen.getByLabelText(/upload custom sound/i);
+    const file = new File(["a"], "sound.mp3", { type: "audio/mpeg" });
+    await userEvent.upload(fileInput, file);
+    await waitFor(async () => {
+      const keys = await listSoundIds();
+      expect(keys.length).toBe(1);
+    });
+    const getSoundMock = getSound as jest.Mock;
+    getSoundMock.mockClear();
+    unmount();
+    render(<TimerSoundApp />);
+    await waitFor(() => expect(getSoundMock).toHaveBeenCalled());
   });
 });
