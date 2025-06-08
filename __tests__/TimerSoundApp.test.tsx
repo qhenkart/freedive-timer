@@ -26,6 +26,13 @@ describe("TimerSoundApp", () => {
     expect(startButton).toBeDisabled();
   });
 
+  it("defaults new sound to beep", () => {
+    render(<TimerSoundApp />);
+    fireEvent.click(screen.getByRole("button", { name: /add sound/i }));
+    const select = screen.getByRole("combobox") as HTMLSelectElement;
+    expect(select.value).toBe("/sounds/beep.wav");
+  });
+
   it("enables start button when a sound is configured", () => {
     render(<TimerSoundApp />);
     fireEvent.click(screen.getByRole("button", { name: /add sound/i }));
@@ -62,7 +69,8 @@ describe("TimerSoundApp", () => {
     render(<TimerSoundApp />);
     const input = screen.getByLabelText(/total time/i) as HTMLInputElement;
     fireEvent.change(input, { target: { value: "" } });
-    expect(input.value).toBe("60");
+    expect(input.value).toBe("");
+    expect(input.placeholder).toBe("60");
     expect(input).toHaveClass("text-neutral-400");
   });
 });
