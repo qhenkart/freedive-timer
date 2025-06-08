@@ -49,4 +49,12 @@ describe("TimerSoundApp", () => {
     expect(screen.getByText(/elapsed: 1s/i)).toBeInTheDocument();
     jest.useRealTimers();
   });
+
+  it("resets total time to default when cleared", () => {
+    render(<TimerSoundApp />);
+    const input = screen.getByLabelText(/total time/i) as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "" } });
+    expect(input.value).toBe("60");
+    expect(input).toHaveClass("text-neutral-400");
+  });
 });

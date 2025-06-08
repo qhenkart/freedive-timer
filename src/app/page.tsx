@@ -8,8 +8,11 @@ const defaultSounds = [
   { label: "Long Beep", value: "/sounds/long_beep.wav" },
 ];
 
+const DEFAULT_TOTAL_SECONDS = 60;
+
 type SoundConfig = {
   second: number;
+  secondInput: string;
   label: string;
   src?: string; // URL or default
   customFile?: File;
@@ -17,13 +20,177 @@ type SoundConfig = {
   sourceType?: "default" | "custom";
 };
 
+function Header() {
+  return (
+    <div className="flex items-center gap-2 mb-2">
+      <Image src="/timer.svg" alt="timer icon" width={32} height={32} />
+      <h1 className="text-3xl font-bold text-neutral-900 tracking-tight">
+        Freedive Timer
+      </h1>
+    </div>
+  );
+}
+
+type TotalTimeInputProps = {
+  value: string;
+  running: boolean;
+  onChange: (val: string) => void;
+};
+
+function TotalTimeInput({ value, running, onChange }: TotalTimeInputProps) {
+  const isDefault = value === DEFAULT_TOTAL_SECONDS.toString();
+  return (
+    <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center mb-8 w-full">
+      <label
+        htmlFor="totalSeconds"
+        className="font-medium text-neutral-700 shrink-0"
+      >
+        Total Time (seconds):
+      </label>
+      <input
+        id="totalSeconds"
+        type="text"
+        inputMode="numeric"
+        pattern="[0-9]*"
+        min={1}
+        value={isDefault ? "" : value}
+        placeholder={DEFAULT_TOTAL_SECONDS.toString()}
+        disabled={running}
+        onChange={(e) => onChange(e.target.value)}
+        className={`border border-neutral-300 rounded-lg px-3 py-1 w-full sm:w-24 text-lg focus:outline-none focus:ring-2 focus:ring-blue-200 ${isDefault ? "text-neutral-400" : "text-black"}`}
+      />
+    </div>
+  );
+}
+
+type SoundRowProps = {
+  sound: SoundConfig;
+  index: number;
+  running: boolean;
+  totalSeconds: number;
+  onSecondChange: (index: number, val: string) => void;
+  onUpdate: (index: number, patch: Partial<SoundConfig>) => void;
+  onSelectDefault: (index: number, val: string) => void;
+  onUpload: (e: React.ChangeEvent<HTMLInputElement>, index: number) => void;
+  onRemove: (index: number) => void;
+};
+
+function SoundRow({
+  sound,
+  index,
+  running,
+  totalSeconds,
+  onSecondChange,
+  onSelectDefault,
+  onUpload,
+  onRemove,
+}: SoundRowProps) {
+  const isDefault = sound.secondInput === "1";
+  return (
+    <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 mb-2 border-b border-neutral-100 pb-2">
+      <label className="text-neutral-600">At</label>
+      <input
+        type="text"
+        inputMode="numeric"
+        pattern="[0-9]*"
+        min={1}
+        max={totalSeconds}
+        value={isDefault ? "" : sound.secondInput}
+        placeholder={"1"}
+        disabled={running}
+        onChange={(e) => onSecondChange(index, e.target.value)}
+        className={`w-full sm:w-16 px-2 border rounded-lg text-base focus:outline-none ${isDefault ? "text-neutral-400" : "text-black"}`}
+      />
+
+      <label className="text-neutral-600">seconds, Play: </label>
+      <select
+        disabled={running}
+        value={sound.sourceType === "default" ? sound.src : ""}
+        onChange={(e) => onSelectDefault(index, e.target.value)}
+        className="px-2 border rounded-lg text-base bg-neutral-50 w-full sm:w-auto text-black"
+      >
+        <option value="ding">Default</option>
+        {defaultSounds.map((ds) => (
+          <option key={ds.value} value={ds.value}>
+            {ds.label}
+          </option>
+        ))}
+      </select>
+      <span className="text-neutral-400 mx-1">or</span>
+      <input
+        type="file"
+        accept="audio/*"
+        disabled={running}
+        onChange={(e) => onUpload(e, index)}
+        className="w-full sm:w-40 text-sm file:mr-2 file:py-1 file:px-2 file:bg-blue-50 file:border file:border-neutral-300 file:rounded-md file:text-blue-700 hover:file:bg-blue-100"
+      />
+      <button
+        className="ml-1 text-red-400 font-bold px-2 rounded hover:bg-red-100 transition"
+        disabled={running}
+        onClick={() => onRemove(index)}
+        type="button"
+      >
+        &times;
+      </button>
+      {(sound.src || sound.customURL) && (
+        <button
+          type="button"
+          onClick={() => {
+            const a = new Audio(sound.src || sound.customURL!);
+            a.play();
+          }}
+          disabled={running}
+          className="ml-1 px-3 py-1 rounded-md border border-blue-500 text-blue-700 bg-blue-50 hover:bg-blue-100 transition"
+        >
+          Play
+        </button>
+      )}
+    </div>
+  );
+}
+
+function Footer() {
+  return (
+    <p className="mt-10 text-neutral-500 text-xs text-center">Happy diving!</p>
+  );
+}
+
 export default function TimerSoundApp() {
-  const [totalSeconds, setTotalSeconds] = useState(60);
+  const [totalSeconds, setTotalSeconds] = useState<number>(
+    DEFAULT_TOTAL_SECONDS,
+  );
+  const [totalSecondsInput, setTotalSecondsInput] = useState(
+    DEFAULT_TOTAL_SECONDS.toString(),
+  );
   const [currentSecond, setCurrentSecond] = useState<number | null>(null);
   const [running, setRunning] = useState(false);
   const [sounds, setSounds] = useState<SoundConfig[]>([]);
   const [error, setError] = useState<string | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleTotalSecondsChange = (val: string) => {
+    const digits = val.replace(/\D/g, "");
+    if (digits === "") {
+      setTotalSecondsInput(DEFAULT_TOTAL_SECONDS.toString());
+      setTotalSeconds(DEFAULT_TOTAL_SECONDS);
+    } else {
+      setTotalSecondsInput(digits);
+      setTotalSeconds(Number(digits));
+    }
+  };
+
+  const handleSoundSecondChange = (index: number, val: string) => {
+    const digits = val.replace(/\D/g, "");
+    const patch: Partial<SoundConfig> = {};
+    if (digits === "") {
+      patch.secondInput = "1";
+      patch.second = 1;
+    } else {
+      patch.secondInput = digits;
+      patch.second = Number(digits);
+    }
+    updateSound(index, patch);
+  };
 
   // Upload custom sound file
   const handleSoundUpload = (
@@ -37,12 +204,12 @@ export default function TimerSoundApp() {
       prev.map((s, i) =>
         i === index
           ? {
-            ...s,
-            customFile: file,
-            customURL: url,
-            src: url,
-            sourceType: "custom",
-          }
+              ...s,
+              customFile: file,
+              customURL: url,
+              src: url,
+              sourceType: "custom",
+            }
           : s,
       ),
     );
@@ -54,12 +221,12 @@ export default function TimerSoundApp() {
       prev.map((s, i) =>
         i === index
           ? {
-            ...s,
-            src: value,
-            sourceType: "default",
-            customFile: undefined,
-            customURL: undefined,
-          }
+              ...s,
+              src: value,
+              sourceType: "default",
+              customFile: undefined,
+              customURL: undefined,
+            }
           : s,
       ),
     );
@@ -69,7 +236,13 @@ export default function TimerSoundApp() {
   const addSound = () => {
     setSounds([
       ...sounds,
-      { second: 1, label: "Sound", src: undefined, sourceType: undefined },
+      {
+        second: 1,
+        secondInput: "1",
+        label: "Sound",
+        src: undefined,
+        sourceType: undefined,
+      },
     ]);
   };
 
@@ -134,106 +307,35 @@ export default function TimerSoundApp() {
   return (
     <div className="min-h-screen bg-neutral-50 flex flex-col items-center justify-center p-0">
       <div className="w-full max-w-xl mx-auto bg-white rounded-2xl shadow-lg px-8 py-10 border border-neutral-100">
-        <div className="flex items-center gap-2 mb-2">
-          <Image src="/timer.svg" alt="timer icon" width={32} height={32} />
-          <h1 className="text-3xl font-bold text-neutral-900 tracking-tight">
-            Freedive Timer
-          </h1>
-        </div>
+        <Header />
         <p className="text-neutral-600 mb-6">
           Enter your total dive time and set sound cues for important moments.
           When you’re ready, hit Start and focus on your breath.
         </p>
 
-        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center mb-8 w-full">
-          <label className="font-medium text-neutral-700 shrink-0">
-            Total Time (seconds):
-          </label>
-          <input
-            type="number"
-            min={1}
-            value={totalSeconds}
-            disabled={running}
-            onChange={(e) => setTotalSeconds(Number(e.target.value))}
-            className="border border-neutral-300 rounded-lg px-3 py-1 w-full sm:w-24 text-lg focus:outline-none focus:ring-2 focus:ring-blue-200"
-          />
-        </div>
+        <TotalTimeInput
+          value={totalSecondsInput}
+          running={running}
+          onChange={handleTotalSecondsChange}
+        />
 
         <div>
           <h2 className="font-semibold mb-2 text-neutral-700">
             Sound Triggers
           </h2>
           {sounds.map((s, i) => (
-            <div
+            <SoundRow
               key={i}
-              className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 mb-2 border-b border-neutral-100 pb-2"
-            >
-              <label className="text-neutral-600">At</label>
-              <input
-                type="number"
-                min={1}
-                max={totalSeconds}
-                value={s.second}
-                disabled={running}
-                onChange={(e) =>
-                  updateSound(i, { second: Number(e.target.value) })
-                }
-                placeholder="sec"
-                className="w-full sm:w-16 px-2 border rounded-lg text-base focus:outline-none"
-              />
-              <label className="text-neutral-600">sec</label>
-              <input
-                type="text"
-                value={s.label}
-                disabled={running}
-                onChange={(e) => updateSound(i, { label: e.target.value })}
-                placeholder="label"
-                className="px-2 border rounded-lg w-full sm:w-32 text-base focus:outline-none"
-              />
-              {/* Sound select */}
-              <select
-                disabled={running}
-                value={s.sourceType === "default" ? s.src : ""}
-                onChange={(e) => selectDefaultSound(i, e.target.value)}
-                className="px-2 border rounded-lg text-base bg-neutral-50 w-full sm:w-auto"
-              >
-                <option value="">Select Default</option>
-                {defaultSounds.map((ds) => (
-                  <option key={ds.value} value={ds.value}>
-                    {ds.label}
-                  </option>
-                ))}
-              </select>
-              <span className="text-neutral-400 mx-1">or</span>
-              <input
-                type="file"
-                accept="audio/*"
-                disabled={running}
-                onChange={(e) => handleSoundUpload(e, i)}
-                className="w-full sm:w-40 text-sm file:mr-2 file:py-1 file:px-2 file:bg-blue-50 file:border file:border-neutral-300 file:rounded-md file:text-blue-700 hover:file:bg-blue-100"
-              />
-              <button
-                className="ml-1 text-red-400 font-bold px-2 rounded hover:bg-red-100 transition"
-                disabled={running}
-                onClick={() => removeSound(i)}
-                type="button"
-              >
-                &times;
-              </button>
-              {(s.src || s.customURL) && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    const a = new Audio(s.src || s.customURL!);
-                    a.play();
-                  }}
-                  disabled={running}
-                  className="ml-1 px-3 py-1 rounded-md border border-blue-500 text-blue-700 bg-blue-50 hover:bg-blue-100 transition"
-                >
-                  Play
-                </button>
-              )}
-            </div>
+              sound={s}
+              index={i}
+              running={running}
+              totalSeconds={totalSeconds}
+              onSecondChange={handleSoundSecondChange}
+              onUpdate={updateSound}
+              onSelectDefault={selectDefaultSound}
+              onUpload={handleSoundUpload}
+              onRemove={removeSound}
+            />
           ))}
           <button
             type="button"
@@ -253,10 +355,11 @@ export default function TimerSoundApp() {
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center w-full">
           <button
-            className={`w-full sm:w-auto px-7 py-2 rounded-lg font-bold transition ${canStart && !running
+            className={`w-full sm:w-auto px-7 py-2 rounded-lg font-bold transition ${
+              canStart && !running
                 ? "bg-blue-600 text-white hover:bg-blue-700"
                 : "bg-neutral-200 text-neutral-400 cursor-not-allowed"
-              }`}
+            }`}
             onClick={startTimer}
             disabled={running || !canStart}
           >
@@ -276,9 +379,7 @@ export default function TimerSoundApp() {
           </div>
         )}
       </div>
-      <p className="mt-10 text-neutral-500 text-xs text-center">
-        Happy diving!
-      </p>
+      <Footer />
     </div>
   );
 }
