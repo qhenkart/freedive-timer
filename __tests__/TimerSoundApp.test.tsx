@@ -195,4 +195,21 @@ describe("TimerSoundApp", () => {
     expect(screen.getByText(/elapsed: 1s/i)).toBeInTheDocument();
     jest.useRealTimers();
   });
+
+  it("plays the first sound trigger", () => {
+    jest.useFakeTimers();
+    const playMock = jest.fn();
+    (global.Audio as jest.Mock).mockImplementation(() => ({ play: playMock }));
+    render(<TimerSoundApp />);
+    fireEvent.click(screen.getByRole("button", { name: /add sound/i }));
+    fireEvent.change(screen.getByRole("combobox"), {
+      target: { value: "/sounds/ding.wav" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /start/i }));
+    act(() => {
+      jest.advanceTimersByTime(1000);
+    });
+    expect(playMock).toHaveBeenCalledTimes(1);
+    jest.useRealTimers();
+  });
 });
