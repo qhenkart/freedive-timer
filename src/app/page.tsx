@@ -72,6 +72,7 @@ type SoundRowProps = {
   onUpdate: (index: number, patch: Partial<SoundConfig>) => void;
   onSelectDefault: (index: number, val: string) => void;
   onUpload: (e: React.ChangeEvent<HTMLInputElement>, index: number) => void;
+  onClearUpload: (index: number) => void;
   onRemove: (index: number) => void;
 };
 
@@ -83,11 +84,12 @@ function SoundRow({
   onSecondChange,
   onSelectDefault,
   onUpload,
+  onClearUpload,
   onRemove,
 }: SoundRowProps) {
   const isDefault = sound.secondInput === "1";
   return (
-    <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 mb-2 border-b border-neutral-100 pb-2">
+    <div className="flex flex-col items-center sm:flex-row sm:flex-wrap sm:items-center gap-2 mb-2 border-b border-neutral-100 pb-2">
       <label className="text-neutral-600">At</label>
       <input
         type="text"
@@ -118,12 +120,38 @@ function SoundRow({
       </select>
       <span className="text-neutral-400 mx-1">or</span>
       <input
+        key={sound.customFile ? sound.customFile.name : "new"}
+        id={`custom-file-${index}`}
         type="file"
         accept="audio/*"
         disabled={running}
         onChange={(e) => onUpload(e, index)}
-        className="w-full sm:w-40 text-sm file:mr-2 file:py-1 file:px-2 file:bg-blue-50 file:border file:border-neutral-300 file:rounded-md file:text-blue-700 hover:file:bg-blue-100"
+        className="hidden"
       />
+      {!sound.customFile ? (
+        <label
+          htmlFor={`custom-file-${index}`}
+          aria-label="upload custom sound"
+          className="cursor-pointer w-full sm:w-40 text-center text-sm px-2 py-1 bg-blue-50 border border-neutral-300 rounded-md text-blue-700 hover:bg-blue-100"
+        >
+          Choose File
+        </label>
+      ) : (
+        <div className="flex items-center w-full sm:w-auto">
+          <span className="px-2 py-1 text-sm border border-neutral-300 rounded-md bg-neutral-50 mr-1">
+            {sound.customFile.name}
+          </span>
+          <button
+            type="button"
+            aria-label="remove custom file"
+            onClick={() => onClearUpload(index)}
+            className="text-red-400 font-bold px-2 rounded hover:bg-red-100"
+            disabled={running}
+          >
+            &times;
+          </button>
+        </div>
+      )}
       <button
         className="ml-1 text-red-400 font-bold px-2 rounded hover:bg-red-100 transition"
         disabled={running}
@@ -284,6 +312,22 @@ export default function TimerSoundApp() {
     setSounds(sounds.filter((_, i) => i !== index));
   };
 
+  const clearCustomFile = (index: number) => {
+    setSounds((prev) =>
+      prev.map((s, i) =>
+        i === index
+          ? {
+              ...s,
+              customFile: undefined,
+              customURL: undefined,
+              src: undefined,
+              sourceType: undefined,
+            }
+          : s,
+      ),
+    );
+  };
+
   // Update sound details
   const updateSound = (index: number, patch: Partial<SoundConfig>) => {
     setSounds((s) =>
@@ -367,6 +411,7 @@ export default function TimerSoundApp() {
               onUpdate={updateSound}
               onSelectDefault={selectDefaultSound}
               onUpload={handleSoundUpload}
+              onClearUpload={clearCustomFile}
               onRemove={removeSound}
             />
           ))}
