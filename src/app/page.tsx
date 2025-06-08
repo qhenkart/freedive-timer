@@ -151,7 +151,40 @@ function SoundRow({
 
 function Footer() {
   return (
-    <p className="mt-10 text-neutral-500 text-xs text-center">Happy diving!</p>
+    <>
+      <p className="mt-10 text-neutral-500 text-xs text-center">
+        Happy diving!
+      </p>
+      <div className="mt-2 flex items-center justify-center gap-3 text-neutral-500 text-xs">
+        <span>Made by Quest Henkart</span>
+        <a
+          href="https://www.instagram.com/questhenkart"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Instagram"
+        >
+          <Image
+            src="/instagram.svg"
+            alt="instagram icon"
+            width={16}
+            height={16}
+          />
+        </a>
+        <a
+          href="https://www.linkedin.com/in/questh/"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="LinkedIn"
+        >
+          <Image
+            src="/linkedin.svg"
+            alt="linkedin icon"
+            width={16}
+            height={16}
+          />
+        </a>
+      </div>
+    </>
   );
 }
 

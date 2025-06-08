@@ -12,6 +12,14 @@ describe("TimerSoundApp", () => {
     const icon = screen.getByAltText(/timer icon/i);
     expect(icon).toBeInTheDocument();
   });
+
+  it("shows social links", () => {
+    render(<TimerSoundApp />);
+    const instagram = screen.getByLabelText(/instagram/i);
+    const linkedin = screen.getByLabelText(/linkedin/i);
+    expect(instagram).toBeInTheDocument();
+    expect(linkedin).toBeInTheDocument();
+  });
   it("disables start button when no sounds", () => {
     render(<TimerSoundApp />);
     const startButton = screen.getByRole("button", { name: /start/i });
