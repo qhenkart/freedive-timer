@@ -158,7 +158,7 @@ export default function TimerSoundApp() {
           {sounds.map((s, i) => (
             <div
               key={i}
-              className="flex items-center gap-2 mb-2 border-b border-neutral-100 pb-2"
+              className="flex flex-wrap items-center gap-2 mb-2 border-b border-neutral-100 pb-2"
             >
               <label className="text-neutral-600">At</label>
               <input
@@ -170,6 +170,7 @@ export default function TimerSoundApp() {
                 onChange={(e) =>
                   updateSound(i, { second: Number(e.target.value) })
                 }
+                placeholder="sec"
                 className="w-16 px-2 border rounded-lg text-base focus:outline-none"
               />
               <label className="text-neutral-600">sec</label>
@@ -178,15 +179,14 @@ export default function TimerSoundApp() {
                 value={s.label}
                 disabled={running}
                 onChange={(e) => updateSound(i, { label: e.target.value })}
+                placeholder="label"
                 className="px-2 border rounded-lg w-32 text-base focus:outline-none"
               />
               {/* Sound select */}
               <select
                 disabled={running}
                 value={s.sourceType === "default" ? s.src : ""}
-                onChange={(e) =>
-                  selectDefaultSound(i, e.target.value || undefined)
-                }
+                onChange={(e) => selectDefaultSound(i, e.target.value)}
                 className="px-2 border rounded-lg text-base bg-neutral-50"
               >
                 <option value="">Select Default</option>
@@ -202,7 +202,7 @@ export default function TimerSoundApp() {
                 accept="audio/*"
                 disabled={running}
                 onChange={(e) => handleSoundUpload(e, i)}
-                className="w-36"
+                className="w-40 text-sm file:mr-2 file:py-1 file:px-2 file:bg-blue-50 file:border file:border-neutral-300 file:rounded-md file:text-blue-700 hover:file:bg-blue-100"
               />
               <button
                 className="ml-1 text-red-400 font-bold px-2 rounded hover:bg-red-100 transition"
@@ -220,7 +220,7 @@ export default function TimerSoundApp() {
                     a.play();
                   }}
                   disabled={running}
-                  className="ml-1 text-blue-600 underline hover:text-blue-800 transition"
+                  className="ml-1 px-3 py-1 rounded-md border border-blue-500 text-blue-700 bg-blue-50 hover:bg-blue-100 transition"
                 >
                   Play
                 </button>
