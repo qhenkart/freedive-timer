@@ -1,9 +1,12 @@
 import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import TimerSoundApp from "@/app/page";
 
 beforeAll(() => {
   // Mock the Audio constructor to avoid errors in jsdom
   global.Audio = jest.fn().mockImplementation(() => ({ play: jest.fn() }));
+  // Mock createObjectURL used for custom sounds
+  global.URL.createObjectURL = jest.fn();
 });
 
 describe("TimerSoundApp", () => {
@@ -62,7 +65,24 @@ describe("TimerSoundApp", () => {
     render(<TimerSoundApp />);
     const input = screen.getByLabelText(/total time/i) as HTMLInputElement;
     fireEvent.change(input, { target: { value: "" } });
-    expect(input.value).toBe("60");
+    expect(input.value).toBe("");
+    expect(input).toHaveAttribute("placeholder", "60");
     expect(input).toHaveClass("text-neutral-400");
+  });
+
+  it("shows filename after uploading custom sound and clears on remove", async () => {
+    render(<TimerSoundApp />);
+    fireEvent.click(screen.getByRole("button", { name: /add sound/i }));
+    const fileInput = screen.getByLabelText(/upload custom sound/i);
+    const file = new File(["a"], "sound.mp3", { type: "audio/mpeg" });
+    await userEvent.upload(fileInput, file);
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: /remove custom file/i }),
+      ).toBeInTheDocument(),
+    );
+    const removeBtn = screen.getByRole("button", { name: /remove custom file/i });
+    fireEvent.click(removeBtn);
+    expect(screen.getByLabelText(/upload custom sound/i)).toBeInTheDocument();
   });
 });
