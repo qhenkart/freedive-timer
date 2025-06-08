@@ -51,6 +51,17 @@ describe("TimerSoundApp", () => {
     expect(startButton).toBeEnabled();
   });
 
+  it("allows selecting beep from the dropdown", () => {
+    render(<TimerSoundApp />);
+    fireEvent.click(screen.getByRole("button", { name: /add sound/i }));
+    const select = screen.getByRole("combobox") as HTMLSelectElement;
+    // change away then back to beep
+    fireEvent.change(select, { target: { value: "/sounds/ding.wav" } });
+    expect(select.value).toBe("/sounds/ding.wav");
+    fireEvent.change(select, { target: { value: "/sounds/beep.wav" } });
+    expect(select.value).toBe("/sounds/beep.wav");
+  });
+
   it("increments timer after starting", async () => {
     jest.useFakeTimers();
     render(<TimerSoundApp />);
