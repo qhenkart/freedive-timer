@@ -102,6 +102,15 @@ describe("TimerSoundApp", () => {
     expect(secondInput.value).toBe("1");
   });
 
+  it("numbers sound triggers and shows remove button after number", () => {
+    render(<TimerSoundApp />);
+    fireEvent.click(screen.getByRole("button", { name: /add sound/i }));
+    fireEvent.click(screen.getByRole("button", { name: /add sound/i }));
+    const items = screen.getAllByRole("listitem");
+    expect(items[0].textContent).toMatch(/^1.*×/);
+    expect(items[1].textContent).toMatch(/^2.*×/);
+  });
+
   it("shows filename after uploading custom sound and clears on remove", async () => {
     render(<TimerSoundApp />);
     fireEvent.click(screen.getByRole("button", { name: /add sound/i }));

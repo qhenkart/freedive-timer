@@ -195,21 +195,23 @@ export default function TimerSoundApp() {
           <h2 className="font-semibold mb-2 text-neutral-700">
             Sound Triggers
           </h2>
-          {sounds.map((s, i) => (
-            <SoundRow
-              key={i}
-              sound={s}
-              index={i}
-              running={running}
-              totalSeconds={totalSeconds}
-              onSecondChange={handleSoundSecondChange}
-              onUpdate={updateSound}
-              onSelectDefault={selectDefaultSound}
-              onUpload={handleSoundUpload}
-              onClearUpload={clearCustomFile}
-              onRemove={removeSound}
-            />
-          ))}
+          <ol className="space-y-2">
+            {sounds.map((s, i) => (
+              <SoundRow
+                key={i}
+                sound={s}
+                index={i}
+                running={running}
+                totalSeconds={totalSeconds}
+                onSecondChange={handleSoundSecondChange}
+                onUpdate={updateSound}
+                onSelectDefault={selectDefaultSound}
+                onUpload={handleSoundUpload}
+                onClearUpload={clearCustomFile}
+                onRemove={removeSound}
+              />
+            ))}
+          </ol>
           <button
             type="button"
             className="mt-3 px-4 py-1 border border-blue-400 text-blue-700 rounded-lg bg-blue-50 hover:bg-blue-100 transition w-full sm:w-auto"
@@ -326,12 +328,14 @@ function SoundRow({
 }: SoundRowProps) {
   const isDefault = sound.secondInput === "";
   return (
-    <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 mb-2 border-b border-neutral-100 pb-2">
+    <li className="flex flex-wrap sm:flex-nowrap items-center gap-2 border-b border-neutral-100 pb-2">
+      <span className="font-medium mr-1">{index + 1}.</span>
       <button
-        className="ml-1 text-red-400 font-bold px-2 rounded hover:bg-red-100 transition"
+        className="text-red-400 font-bold px-2 rounded hover:bg-red-100 transition"
         disabled={running}
         onClick={() => onRemove(index)}
         type="button"
+        aria-label="remove sound"
       >
         &times;
       </button>
@@ -417,7 +421,7 @@ function SoundRow({
           Play
         </button>
       )}
-    </div>
+    </li>
   );
 }
 
