@@ -16,7 +16,7 @@ beforeAll(() => {
   // Mock speech synthesis for countdown
   global.speechSynthesis = { speak: jest.fn() } as any;
   // Mock SpeechSynthesisUtterance constructor
-  global.SpeechSynthesisUtterance = function (this: any, text: string) {
+  global.SpeechSynthesisUtterance = function(this: any, text: string) {
     this.text = text;
   } as any;
 });
@@ -112,15 +112,6 @@ describe("TimerSoundApp", () => {
     expect(secondInput.value).toBe("1");
   });
 
-  it("numbers sound triggers and shows remove button after number", () => {
-    render(<TimerSoundApp />);
-    fireEvent.click(screen.getByRole("button", { name: /add sound/i }));
-    fireEvent.click(screen.getByRole("button", { name: /add sound/i }));
-    const items = screen.getAllByRole("listitem");
-    expect(items[0].textContent).toMatch(/^1.*×/);
-    expect(items[1].textContent).toMatch(/^2.*×/);
-  });
-
   it("shows filename after uploading custom sound and clears on remove", async () => {
     render(<TimerSoundApp />);
     fireEvent.click(screen.getByRole("button", { name: /add sound/i }));
@@ -137,13 +128,6 @@ describe("TimerSoundApp", () => {
     });
     fireEvent.click(removeBtn);
     expect(screen.getByLabelText(/upload custom sound/i)).toBeInTheDocument();
-  });
-
-  it("keeps play button inline on larger screens", () => {
-    render(<TimerSoundApp />);
-    fireEvent.click(screen.getByRole("button", { name: /add sound/i }));
-    const playButton = screen.getByRole("button", { name: /play/i });
-    expect(playButton.parentElement).toHaveClass("sm:flex-nowrap");
   });
 
   it("shows countdown option", () => {

@@ -197,9 +197,7 @@ export default function TimerSoundApp() {
       ];
       schedule.forEach(({ delay, text }) => {
         const t = setTimeout(() => {
-          window.speechSynthesis.speak(
-            new SpeechSynthesisUtterance(text),
-          );
+          window.speechSynthesis.speak(new SpeechSynthesisUtterance(text));
         }, delay);
         countdownTimeouts.current.push(t);
       });
@@ -276,7 +274,7 @@ export default function TimerSoundApp() {
           </ol>
           <button
             type="button"
-            className="mt-3 px-4 py-1 border border-blue-400 text-blue-700 rounded-lg bg-blue-50 hover:bg-blue-100 transition w-full sm:w-auto"
+            className="mt-3 w-full sm:w-auto px-4 py-2 rounded-full sm:rounded-md bg-blue-100 text-blue-700 font-semibold shadow hover:bg-blue-200 transition border-0 text-sm disabled:opacity-50 flex items-center justify-center"
             disabled={running}
             onClick={addSound}
           >
@@ -302,8 +300,8 @@ export default function TimerSoundApp() {
           {countdownRemaining !== null
             ? `Countdown: ${formatTime(countdownRemaining)}`
             : currentSecond !== null
-            ? `Elapsed: ${currentSecond}s / ${totalSeconds}s`
-            : "Timer Ready"}
+              ? `Elapsed: ${currentSecond}s / ${totalSeconds}s`
+              : "Timer Ready"}
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center w-full">
@@ -406,99 +404,163 @@ function SoundRow({
 }: SoundRowProps) {
   const isDefault = sound.secondInput === "";
   return (
-    <li className="flex flex-wrap sm:flex-nowrap items-center gap-2 border-b border-neutral-100 pb-2">
-      <span className="font-medium mr-1">{index + 1}.</span>
+    <li
+      className="
+      relative
+      flex flex-col sm:flex-row
+      items-center sm:items-center
+      gap-5 sm:gap-2
+      p-5 sm:p-2
+      rounded-2xl sm:rounded-lg
+      shadow-lg sm:shadow-none
+      bg-white max-w-xs sm:max-w-none
+      mx-auto my-4 sm:mx-0 sm:my-0
+      transition-all duration-200
+      w-full
+    "
+    >
+      {/* Remove button */}
       <button
-        className="text-red-400 font-bold px-2 rounded hover:bg-red-100 transition"
+        className="
+        absolute right-3 top-3
+        sm:static sm:ml-2 sm:relative sm:right-0 sm:top-0
+        text-red-500 text-xl sm:text-base
+        "
         disabled={running}
         onClick={() => onRemove(index)}
         type="button"
         aria-label="remove sound"
+        style={{ lineHeight: 1 }}
       >
         &times;
       </button>
 
-      <label className="text-neutral-600">At</label>
-      <input
-        type="text"
-        inputMode="numeric"
-        pattern="[0-9]*"
-        min={1}
-        max={totalSeconds}
-        value={isDefault ? "" : sound.secondInput}
-        placeholder={"1"}
-        disabled={running}
-        onChange={(e) => onSecondChange(index, e.target.value)}
-        className={`w-full sm:w-16 px-2 border rounded-lg text-base focus:outline-none ${isDefault ? "text-neutral-400" : "text-black"}`}
-      />
-
-      <label className="text-neutral-600">seconds, Play: </label>
-      <select
-        disabled={running}
-        value={sound.sourceType === "default" ? sound.src : ""}
-        onChange={(e) => onSelectDefault(index, e.target.value)}
-        className="px-2 border rounded-lg text-base bg-neutral-50 w-full sm:w-auto text-black"
+      {/* "At" input group */}
+      <div
+        className="
+      flex flex-col sm:flex-row
+      items-center
+      w-full sm:w-auto
+      gap-2 sm:gap-1
+      p-3 sm:p-0
+      bg-neutral-100 sm:bg-transparent
+      rounded-xl sm:rounded-none
+      "
       >
-        {defaultSounds.map((ds) => (
-          <option key={ds.value} value={ds.value}>
-            {ds.label}
-          </option>
-        ))}
-      </select>
+        <span className="text-xs sm:text-sm font-semibold text-neutral-500 mb-1 sm:mb-0">
+          At
+        </span>
+        <input
+          id={`seconds-input-${index}`}
+          type="text"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          min={1}
+          max={totalSeconds}
+          value={isDefault ? "" : sound.secondInput}
+          placeholder="1"
+          disabled={running}
+          onChange={(e) => onSecondChange(index, e.target.value)}
+          className={`
+          text-center
+          w-16 sm:w-14
+          px-2 py-2 sm:px-2 sm:py-1
+          rounded-lg border border-neutral-300
+          bg-white text-base font-semibold focus:outline-none
+          ${isDefault ? "text-neutral-400" : "text-black"}
+        `}
+          autoComplete="off"
+        />
+        <span className="text-xs sm:text-sm text-neutral-500">seconds</span>
+      </div>
 
-      <span className="text-neutral-400 mx-1">or</span>
-      <input
-        key={sound.customFile ? sound.customFile.name : "new"}
-        id={`custom-file-${index}`}
-        type="file"
-        accept="audio/*"
-        disabled={running}
-        onChange={(e) => onUpload(e, index)}
-        className="hidden"
-      />
-
-      {!sound.customFile && (
-        <label
-          htmlFor={`custom-file-${index}`}
-          aria-label="upload custom sound"
-          className="cursor-pointer text-center text-sm px-2 py-1 bg-gray-50 border border-neutral-300 rounded-md text-black hover:bg-blue-100"
+      {/* Play + Dropdown */}
+      <div className="flex flex-row items-center gap-2 w-full sm:w-auto justify-center">
+        <span className="text-sm font-medium text-neutral-500">Play:</span>
+        <select
+          disabled={running}
+          value={sound.sourceType === "default" ? sound.src : ""}
+          onChange={(e) => onSelectDefault(index, e.target.value)}
+          className="
+          rounded-full sm:rounded-lg
+          px-4 py-2 sm:px-2 sm:py-1
+          bg-neutral-200 sm:bg-neutral-50
+          text-black text-sm focus:outline-none
+          w-auto
+        "
         >
-          Upload
-        </label>
-      )}
+          {defaultSounds.map((ds) => (
+            <option key={ds.value} value={ds.value}>
+              {ds.label}
+            </option>
+          ))}
+        </select>
+      </div>
 
-      {sound.customFile && (
-        <div className="flex items-center w-full sm:w-auto group">
-          <span className="px-2 py-1 text-sm border border-neutral-300 rounded-md bg-neutral-50 mr-1 text-gray-500 whitespace-nowrap truncate max-w-[500px] sm:max-w-[120px]">
-            {sound.customFile.name}
-          </span>
+      {/* or separator */}
+      <div className="text-xs text-neutral-400 text-center w-full sm:w-auto">
+        or
+      </div>
+
+      {/* Upload and Play row */}
+      <div className="flex flex-row items-center gap-2 w-full sm:w-auto justify-center">
+        <input
+          key={sound.customFile ? sound.customFile.name : "new"}
+          id={`custom-file-${index}`}
+          type="file"
+          accept="audio/*"
+          disabled={running}
+          onChange={(e) => onUpload(e, index)}
+          className="hidden"
+        />
+        {!sound.customFile && (
+          <label
+            htmlFor={`custom-file-${index}`}
+            aria-label="upload custom sound"
+            className="
+            rounded-full sm:rounded-md
+            px-4 py-2 sm:px-2 sm:py-1
+            bg-blue-100 text-blue-700 text-sm font-medium cursor-pointer
+            shadow hover:bg-blue-200
+          "
+          >
+            Upload
+          </label>
+        )}
+        {sound.customFile && (
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 rounded-full sm:rounded-md bg-neutral-200 text-neutral-600 text-xs truncate max-w-[100px]">
+              {sound.customFile.name}
+            </span>
+            <button
+              type="button"
+              aria-label="remove custom file"
+              onClick={() => onClearUpload(index)}
+              className="text-red-400 text-base"
+              disabled={running}
+            >
+              &times;
+            </button>
+          </div>
+        )}
+        {(sound.src || sound.customURL) && (
           <button
             type="button"
-            aria-label="remove custom file"
-            onClick={() => onClearUpload(index)}
-            className="text-red-400 font-bold px-2 rounded transition
-                 opacity-0 group-hover:opacity-100 
-                 group-hover:scale-125 group-hover:bg-red-100"
+            onClick={() => {
+              const a = new Audio(sound.src || sound.customURL!);
+              a.play();
+            }}
             disabled={running}
+            className="
+            rounded-full sm:rounded-md
+            px-4 py-2 sm:px-2 sm:py-1
+            bg-green-100 text-green-700 text-sm font-semibold shadow hover:bg-green-200
+          "
           >
-            &times;
+            Play
           </button>
-        </div>
-      )}
-
-      {(sound.src || sound.customURL) && (
-        <button
-          type="button"
-          onClick={() => {
-            const a = new Audio(sound.src || sound.customURL!);
-            a.play();
-          }}
-          disabled={running}
-          className="ml-1 px-3 py-1 rounded-md border text-sm border-blue-500 text-blue-700 bg-blue-50 hover:bg-blue-100 transition"
-        >
-          Play
-        </button>
-      )}
+        )}
+      </div>
     </li>
   );
 }
