@@ -7,6 +7,11 @@ beforeAll(() => {
 });
 
 describe("TimerSoundApp", () => {
+  it("shows timer icon", () => {
+    render(<TimerSoundApp />);
+    const icon = screen.getByAltText(/timer icon/i);
+    expect(icon).toBeInTheDocument();
+  });
   it("disables start button when no sounds", () => {
     render(<TimerSoundApp />);
     const startButton = screen.getByRole("button", { name: /start/i });

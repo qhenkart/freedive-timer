@@ -135,7 +135,7 @@ export default function TimerSoundApp() {
     <div className="min-h-screen bg-neutral-50 flex flex-col items-center justify-center p-0">
       <div className="w-full max-w-xl mx-auto bg-white rounded-2xl shadow-lg px-8 py-10 border border-neutral-100">
         <div className="flex items-center gap-2 mb-2">
-          <Image src="/clock.svg" alt="timer icon" width={32} height={32} />
+          <Image src="/timer.svg" alt="timer icon" width={32} height={32} />
           <h1 className="text-3xl font-bold text-neutral-900 tracking-tight">
             Freedive Timer
           </h1>
@@ -145,7 +145,7 @@ export default function TimerSoundApp() {
           When you’re ready, hit Start and focus on your breath.
         </p>
 
-        <div className="flex gap-3 items-center mb-8">
+        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center mb-8 w-full">
           <label className="font-medium text-neutral-700 shrink-0">
             Total Time (seconds):
           </label>
@@ -155,7 +155,7 @@ export default function TimerSoundApp() {
             value={totalSeconds}
             disabled={running}
             onChange={(e) => setTotalSeconds(Number(e.target.value))}
-            className="border border-neutral-300 rounded-lg px-3 py-1 w-24 text-lg focus:outline-none focus:ring-2 focus:ring-blue-200"
+            className="border border-neutral-300 rounded-lg px-3 py-1 w-full sm:w-24 text-lg focus:outline-none focus:ring-2 focus:ring-blue-200"
           />
         </div>
 
@@ -166,7 +166,7 @@ export default function TimerSoundApp() {
           {sounds.map((s, i) => (
             <div
               key={i}
-              className="flex flex-wrap items-center gap-2 mb-2 border-b border-neutral-100 pb-2"
+              className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 mb-2 border-b border-neutral-100 pb-2"
             >
               <label className="text-neutral-600">At</label>
               <input
@@ -179,7 +179,7 @@ export default function TimerSoundApp() {
                   updateSound(i, { second: Number(e.target.value) })
                 }
                 placeholder="sec"
-                className="w-16 px-2 border rounded-lg text-base focus:outline-none"
+                className="w-full sm:w-16 px-2 border rounded-lg text-base focus:outline-none"
               />
               <label className="text-neutral-600">sec</label>
               <input
@@ -188,14 +188,14 @@ export default function TimerSoundApp() {
                 disabled={running}
                 onChange={(e) => updateSound(i, { label: e.target.value })}
                 placeholder="label"
-                className="px-2 border rounded-lg w-32 text-base focus:outline-none"
+                className="px-2 border rounded-lg w-full sm:w-32 text-base focus:outline-none"
               />
               {/* Sound select */}
               <select
                 disabled={running}
                 value={s.sourceType === "default" ? s.src : ""}
                 onChange={(e) => selectDefaultSound(i, e.target.value)}
-                className="px-2 border rounded-lg text-base bg-neutral-50"
+                className="px-2 border rounded-lg text-base bg-neutral-50 w-full sm:w-auto"
               >
                 <option value="">Select Default</option>
                 {defaultSounds.map((ds) => (
@@ -210,7 +210,7 @@ export default function TimerSoundApp() {
                 accept="audio/*"
                 disabled={running}
                 onChange={(e) => handleSoundUpload(e, i)}
-                className="w-40 text-sm file:mr-2 file:py-1 file:px-2 file:bg-blue-50 file:border file:border-neutral-300 file:rounded-md file:text-blue-700 hover:file:bg-blue-100"
+                className="w-full sm:w-40 text-sm file:mr-2 file:py-1 file:px-2 file:bg-blue-50 file:border file:border-neutral-300 file:rounded-md file:text-blue-700 hover:file:bg-blue-100"
               />
               <button
                 className="ml-1 text-red-400 font-bold px-2 rounded hover:bg-red-100 transition"
@@ -237,7 +237,7 @@ export default function TimerSoundApp() {
           ))}
           <button
             type="button"
-            className="mt-3 px-4 py-1 border border-blue-400 text-blue-700 rounded-lg bg-blue-50 hover:bg-blue-100 transition"
+            className="mt-3 px-4 py-1 border border-blue-400 text-blue-700 rounded-lg bg-blue-50 hover:bg-blue-100 transition w-full sm:w-auto"
             disabled={running}
             onClick={addSound}
           >
@@ -251,9 +251,9 @@ export default function TimerSoundApp() {
             : "Timer Ready"}
         </div>
 
-        <div className="flex gap-4 justify-center">
+        <div className="flex flex-col sm:flex-row gap-4 justify-center w-full">
           <button
-            className={`px-7 py-2 rounded-lg font-bold transition ${canStart && !running
+            className={`w-full sm:w-auto px-7 py-2 rounded-lg font-bold transition ${canStart && !running
                 ? "bg-blue-600 text-white hover:bg-blue-700"
                 : "bg-neutral-200 text-neutral-400 cursor-not-allowed"
               }`}
@@ -263,7 +263,7 @@ export default function TimerSoundApp() {
             Start
           </button>
           <button
-            className="px-7 py-2 rounded-lg font-bold bg-neutral-200 hover:bg-neutral-300 transition"
+            className="w-full sm:w-auto px-7 py-2 rounded-lg font-bold bg-neutral-200 hover:bg-neutral-300 transition"
             onClick={stopTimer}
             disabled={!running}
           >
