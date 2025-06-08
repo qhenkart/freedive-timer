@@ -8,6 +8,8 @@ const defaultSounds = [
   { label: "Long Beep", value: "/sounds/long_beep.wav" },
 ];
 
+const DEFAULT_SOUND = "/sounds/beep.wav";
+
 const DEFAULT_TOTAL_SECONDS = 60;
 
 type SoundConfig = {
@@ -109,7 +111,7 @@ function SoundRow({
         onChange={(e) => onSelectDefault(index, e.target.value)}
         className="px-2 border rounded-lg text-base bg-neutral-50 w-full sm:w-auto text-black"
       >
-        <option value="ding">Default</option>
+        <option value={DEFAULT_SOUND}>Default</option>
         {defaultSounds.map((ds) => (
           <option key={ds.value} value={ds.value}>
             {ds.label}
@@ -273,8 +275,8 @@ export default function TimerSoundApp() {
         second: 1,
         secondInput: "1",
         label: "Sound",
-        src: undefined,
-        sourceType: undefined,
+        src: DEFAULT_SOUND,
+        sourceType: "default",
       },
     ]);
   };
