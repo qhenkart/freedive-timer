@@ -167,8 +167,7 @@ export default function TimerSoundApp() {
     setRunning(true);
     intervalRef.current = setInterval(() => {
       setCurrentSecond((prev) => {
-        if (prev === null) return 0;
-        const next = prev + 1;
+        const next = (prev ?? 0) + 1;
         // Play any sound scheduled for this second
         sounds.forEach((s) => {
           if (s.second === next && s.src) {
