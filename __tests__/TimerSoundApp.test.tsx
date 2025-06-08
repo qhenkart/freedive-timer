@@ -119,4 +119,11 @@ describe("TimerSoundApp", () => {
     fireEvent.click(removeBtn);
     expect(screen.getByLabelText(/upload custom sound/i)).toBeInTheDocument();
   });
+
+  it("keeps play button inline on larger screens", () => {
+    render(<TimerSoundApp />);
+    fireEvent.click(screen.getByRole("button", { name: /add sound/i }));
+    const playButton = screen.getByRole("button", { name: /play/i });
+    expect(playButton.parentElement).toHaveClass("sm:flex-nowrap");
+  });
 });

@@ -178,7 +178,7 @@ export default function TimerSoundApp() {
 
   return (
     <div className="min-h-screen bg-neutral-50 flex flex-col items-center justify-center p-0">
-      <div className="w-full max-w-xl mx-auto bg-white rounded-2xl shadow-lg px-8 py-10 border border-neutral-100">
+      <div className="w-full md:max-w-2xl mx-auto bg-white rounded-2xl shadow-lg px-8 py-10 border border-neutral-100">
         <Header />
         <p className="text-neutral-600 mb-6">
           Enter your total dive time and set sound cues for important moments.
@@ -326,7 +326,16 @@ function SoundRow({
 }: SoundRowProps) {
   const isDefault = sound.secondInput === "";
   return (
-    <div className="flex flex-wrap items-center gap-2 mb-2 border-b border-neutral-100 pb-2">
+    <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 mb-2 border-b border-neutral-100 pb-2">
+      <button
+        className="ml-1 text-red-400 font-bold px-2 rounded hover:bg-red-100 transition"
+        disabled={running}
+        onClick={() => onRemove(index)}
+        type="button"
+      >
+        &times;
+      </button>
+
       <label className="text-neutral-600">At</label>
       <input
         type="text"
@@ -354,6 +363,7 @@ function SoundRow({
           </option>
         ))}
       </select>
+
       <span className="text-neutral-400 mx-1">or</span>
       <input
         key={sound.customFile ? sound.customFile.name : "new"}
@@ -364,17 +374,20 @@ function SoundRow({
         onChange={(e) => onUpload(e, index)}
         className="hidden"
       />
-      {!sound.customFile ? (
+
+      {!sound.customFile && (
         <label
           htmlFor={`custom-file-${index}`}
           aria-label="upload custom sound"
-          className="cursor-pointer text-center text-sm px-2 py-1 bg-blue-50 border border-neutral-300 rounded-md text-blue-700 hover:bg-blue-100"
+          className="cursor-pointer text-center text-sm px-2 py-1 bg-gray-50 border border-neutral-300 rounded-md text-black hover:bg-blue-100"
         >
-          Choose File
+          Upload
         </label>
-      ) : (
+      )}
+
+      {sound.customFile && (
         <div className="flex items-center w-full sm:w-auto group">
-          <span className="px-2 py-1 text-sm border border-neutral-300 rounded-md bg-neutral-50 mr-1 text-gray-500 whitespace-nowrap">
+          <span className="px-2 py-1 text-sm border border-neutral-300 rounded-md bg-neutral-50 mr-1 text-gray-500 whitespace-nowrap truncate max-w-[500px] sm:max-w-[120px]">
             {sound.customFile.name}
           </span>
           <button
@@ -388,14 +401,7 @@ function SoundRow({
           </button>
         </div>
       )}
-      <button
-        className="ml-1 text-red-400 font-bold px-2 rounded hover:bg-red-100 transition"
-        disabled={running}
-        onClick={() => onRemove(index)}
-        type="button"
-      >
-        &times;
-      </button>
+
       {(sound.src || sound.customURL) && (
         <button
           type="button"
@@ -404,7 +410,7 @@ function SoundRow({
             a.play();
           }}
           disabled={running}
-          className="ml-1 px-3 py-1 rounded-md border border-blue-500 text-blue-700 bg-blue-50 hover:bg-blue-100 transition"
+          className="ml-1 px-3 py-1 rounded-md border text-sm border-blue-500 text-blue-700 bg-blue-50 hover:bg-blue-100 transition"
         >
           Play
         </button>
