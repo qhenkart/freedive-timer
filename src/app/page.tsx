@@ -19,6 +19,7 @@ function formatTime(sec: number) {
 }
 
 type SoundConfig = {
+  id: string;
   second: number;
   secondInput: string;
   label: string;
@@ -26,6 +27,8 @@ type SoundConfig = {
   customFile?: File;
   customURL?: string;
   sourceType?: "default" | "custom";
+  isNew?: boolean;
+  isRemoving?: boolean;
 };
 
 export default function TimerSoundApp() {
@@ -102,21 +105,32 @@ export default function TimerSoundApp() {
 
   // Add a new sound trigger
   const addSound = () => {
-    setSounds([
-      ...sounds,
-      {
-        second: 1,
-        secondInput: "",
-        label: "Sound",
-        src: DEFAULT_SOUND,
-        sourceType: "default",
-      },
-    ]);
+    const id = Math.random().toString(36).slice(2);
+    const newSound: SoundConfig = {
+      id,
+      second: 1,
+      secondInput: "",
+      label: "Sound",
+      src: DEFAULT_SOUND,
+      sourceType: "default",
+      isNew: true,
+    };
+    setSounds((prev) => [...prev, newSound]);
+    setTimeout(() => {
+      setSounds((prev) =>
+        prev.map((s) => (s.id === id ? { ...s, isNew: false } : s)),
+      );
+    }, 200);
   };
 
   // Remove a sound trigger
-  const removeSound = (index: number) => {
-    setSounds(sounds.filter((_, i) => i !== index));
+  const removeSound = (id: string) => {
+    setSounds((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, isRemoving: true } : s)),
+    );
+    setTimeout(() => {
+      setSounds((prev) => prev.filter((s) => s.id !== id));
+    }, 200);
   };
 
   const clearCustomFile = (index: number) => {
@@ -258,7 +272,7 @@ export default function TimerSoundApp() {
           <ol className="space-y-2">
             {sounds.map((s, i) => (
               <SoundRow
-                key={i}
+                key={s.id}
                 sound={s}
                 index={i}
                 running={running}
@@ -268,7 +282,7 @@ export default function TimerSoundApp() {
                 onSelectDefault={selectDefaultSound}
                 onUpload={handleSoundUpload}
                 onClearUpload={clearCustomFile}
-                onRemove={removeSound}
+                onRemove={() => removeSound(s.id)}
               />
             ))}
           </ol>
@@ -388,7 +402,7 @@ type SoundRowProps = {
   onSelectDefault: (index: number, val: string) => void;
   onUpload: (e: React.ChangeEvent<HTMLInputElement>, index: number) => void;
   onClearUpload: (index: number) => void;
-  onRemove: (index: number) => void;
+  onRemove: (id: string) => void;
 };
 
 function SoundRow({
@@ -405,19 +419,11 @@ function SoundRow({
   const isDefault = sound.secondInput === "";
   return (
     <li
-      className="
-      relative
-      flex flex-col sm:flex-row
-      items-center sm:items-center
-      gap-5 sm:gap-2
-      p-5 sm:p-2
-      rounded-2xl sm:rounded-lg
-      shadow-lg sm:shadow-none
-      bg-white max-w-xs sm:max-w-none
-      mx-auto my-4 sm:mx-0 sm:my-0
-      transition-all duration-200
-      w-full
-    "
+      className={
+        `relative flex flex-col sm:flex-row items-center sm:items-center gap-5 sm:gap-2 p-5 sm:p-2 rounded-2xl sm:rounded-lg shadow-lg sm:shadow-none bg-white max-w-xs sm:max-w-none mx-auto my-4 sm:mx-0 sm:my-0 transition-all duration-200 w-full ${
+          sound.isNew ? "fade-in" : ""
+        } ${sound.isRemoving ? "fade-out" : ""}`
+      }
     >
       {/* Remove button */}
       <button
@@ -427,7 +433,7 @@ function SoundRow({
         text-red-500 text-xl sm:text-base
         "
         disabled={running}
-        onClick={() => onRemove(index)}
+        onClick={() => onRemove(sound.id)}
         type="button"
         aria-label="remove sound"
         style={{ lineHeight: 1 }}

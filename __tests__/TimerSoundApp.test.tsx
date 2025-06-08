@@ -112,6 +112,19 @@ describe("TimerSoundApp", () => {
     expect(secondInput.value).toBe("1");
   });
 
+  it("removes a sound trigger after clicking remove", () => {
+    jest.useFakeTimers();
+    render(<TimerSoundApp />);
+    fireEvent.click(screen.getByRole("button", { name: /add sound/i }));
+    const removeBtn = screen.getByLabelText(/remove sound/i);
+    fireEvent.click(removeBtn);
+    act(() => {
+      jest.advanceTimersByTime(200);
+    });
+    expect(screen.queryByLabelText(/remove sound/i)).not.toBeInTheDocument();
+    jest.useRealTimers();
+  });
+
   it("shows filename after uploading custom sound and clears on remove", async () => {
     render(<TimerSoundApp />);
     fireEvent.click(screen.getByRole("button", { name: /add sound/i }));
