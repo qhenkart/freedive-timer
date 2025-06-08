@@ -326,7 +326,7 @@ function SoundRow({
 }: SoundRowProps) {
   const isDefault = sound.secondInput === "";
   return (
-    <div className="flex flex-col items-center sm:flex-row sm:flex-wrap sm:items-center gap-2 mb-2 border-b border-neutral-100 pb-2">
+    <div className="flex flex-wrap items-center gap-2 mb-2 border-b border-neutral-100 pb-2">
       <label className="text-neutral-600">At</label>
       <input
         type="text"
@@ -369,20 +369,20 @@ function SoundRow({
         <label
           htmlFor={`custom-file-${index}`}
           aria-label="upload custom sound"
-          className="cursor-pointer w-full sm:w-40 text-center text-sm px-2 py-1 bg-blue-50 border border-neutral-300 rounded-md text-blue-700 hover:bg-blue-100"
+          className="cursor-pointer text-center text-sm px-2 py-1 bg-blue-50 border border-neutral-300 rounded-md text-blue-700 hover:bg-blue-100"
         >
           Choose File
         </label>
       ) : (
-        <div className="flex items-center w-full sm:w-auto">
-          <span className="px-2 py-1 text-sm border border-neutral-300 rounded-md bg-neutral-50 mr-1 text-gray-500">
+        <div className="flex items-center w-full sm:w-auto group">
+          <span className="px-2 py-1 text-sm border border-neutral-300 rounded-md bg-neutral-50 mr-1 text-gray-500 whitespace-nowrap">
             {sound.customFile.name}
           </span>
           <button
             type="button"
             aria-label="remove custom file"
             onClick={() => onClearUpload(index)}
-            className="text-red-400 font-bold px-2 rounded hover:bg-red-100"
+            className="text-red-400 font-bold px-2 rounded hover:bg-red-100 transition opacity-0 group-hover:opacity-100"
             disabled={running}
           >
             &times;
