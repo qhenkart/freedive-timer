@@ -394,7 +394,9 @@ function SoundRow({
             type="button"
             aria-label="remove custom file"
             onClick={() => onClearUpload(index)}
-            className="text-red-400 font-bold px-2 rounded hover:bg-red-100 transition opacity-0 group-hover:opacity-100"
+            className="text-red-400 font-bold px-2 rounded transition
+                 opacity-0 group-hover:opacity-100 
+                 group-hover:scale-125 group-hover:bg-red-100"
             disabled={running}
           >
             &times;
