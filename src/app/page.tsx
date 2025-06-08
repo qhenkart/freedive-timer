@@ -22,202 +22,6 @@ type SoundConfig = {
   sourceType?: "default" | "custom";
 };
 
-function Header() {
-  return (
-    <div className="flex items-center gap-2 mb-2">
-      <Image src="/timer.svg" alt="timer icon" width={32} height={32} />
-      <h1 className="text-3xl font-bold text-neutral-900 tracking-tight">
-        Freedive Timer
-      </h1>
-    </div>
-  );
-}
-
-type TotalTimeInputProps = {
-  value: string;
-  running: boolean;
-  onChange: (val: string) => void;
-};
-
-function TotalTimeInput({ value, running, onChange }: TotalTimeInputProps) {
-  const isDefault = value === DEFAULT_TOTAL_SECONDS.toString();
-  return (
-    <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center mb-8 w-full">
-      <label
-        htmlFor="totalSeconds"
-        className="font-medium text-neutral-700 shrink-0"
-      >
-        Total Time (seconds):
-      </label>
-      <input
-        id="totalSeconds"
-        type="text"
-        inputMode="numeric"
-        pattern="[0-9]*"
-        min={1}
-        value={isDefault ? "" : value}
-        placeholder={DEFAULT_TOTAL_SECONDS.toString()}
-        disabled={running}
-        onChange={(e) => onChange(e.target.value)}
-        className={`border border-neutral-300 rounded-lg px-3 py-1 w-full sm:w-24 text-lg focus:outline-none focus:ring-2 focus:ring-blue-200 ${isDefault ? "text-neutral-400" : "text-black"}`}
-      />
-    </div>
-  );
-}
-
-type SoundRowProps = {
-  sound: SoundConfig;
-  index: number;
-  running: boolean;
-  totalSeconds: number;
-  onSecondChange: (index: number, val: string) => void;
-  onUpdate: (index: number, patch: Partial<SoundConfig>) => void;
-  onSelectDefault: (index: number, val: string) => void;
-  onUpload: (e: React.ChangeEvent<HTMLInputElement>, index: number) => void;
-  onClearUpload: (index: number) => void;
-  onRemove: (index: number) => void;
-};
-
-function SoundRow({
-  sound,
-  index,
-  running,
-  totalSeconds,
-  onSecondChange,
-  onSelectDefault,
-  onUpload,
-  onClearUpload,
-  onRemove,
-}: SoundRowProps) {
-  const isDefault = sound.secondInput === "1";
-  return (
-    <div className="flex flex-col items-center sm:flex-row sm:flex-wrap sm:items-center gap-2 mb-2 border-b border-neutral-100 pb-2">
-      <label className="text-neutral-600">At</label>
-      <input
-        type="text"
-        inputMode="numeric"
-        pattern="[0-9]*"
-        min={1}
-        max={totalSeconds}
-        value={isDefault ? "" : sound.secondInput}
-        placeholder={"1"}
-        disabled={running}
-        onChange={(e) => onSecondChange(index, e.target.value)}
-        className={`w-full sm:w-16 px-2 border rounded-lg text-base focus:outline-none ${isDefault ? "text-neutral-400" : "text-black"}`}
-      />
-
-      <label className="text-neutral-600">seconds, Play: </label>
-      <select
-        disabled={running}
-        value={sound.sourceType === "default" ? sound.src : ""}
-        onChange={(e) => onSelectDefault(index, e.target.value)}
-        className="px-2 border rounded-lg text-base bg-neutral-50 w-full sm:w-auto text-black"
-      >
-        <option value={DEFAULT_SOUND}>Default</option>
-        {defaultSounds.map((ds) => (
-          <option key={ds.value} value={ds.value}>
-            {ds.label}
-          </option>
-        ))}
-      </select>
-      <span className="text-neutral-400 mx-1">or</span>
-      <input
-        key={sound.customFile ? sound.customFile.name : "new"}
-        id={`custom-file-${index}`}
-        type="file"
-        accept="audio/*"
-        disabled={running}
-        onChange={(e) => onUpload(e, index)}
-        className="hidden"
-      />
-      {!sound.customFile ? (
-        <label
-          htmlFor={`custom-file-${index}`}
-          aria-label="upload custom sound"
-          className="cursor-pointer w-full sm:w-40 text-center text-sm px-2 py-1 bg-blue-50 border border-neutral-300 rounded-md text-blue-700 hover:bg-blue-100"
-        >
-          Choose File
-        </label>
-      ) : (
-        <div className="flex items-center w-full sm:w-auto">
-          <span className="px-2 py-1 text-sm border border-neutral-300 rounded-md bg-neutral-50 mr-1">
-            {sound.customFile.name}
-          </span>
-          <button
-            type="button"
-            aria-label="remove custom file"
-            onClick={() => onClearUpload(index)}
-            className="text-red-400 font-bold px-2 rounded hover:bg-red-100"
-            disabled={running}
-          >
-            &times;
-          </button>
-        </div>
-      )}
-      <button
-        className="ml-1 text-red-400 font-bold px-2 rounded hover:bg-red-100 transition"
-        disabled={running}
-        onClick={() => onRemove(index)}
-        type="button"
-      >
-        &times;
-      </button>
-      {(sound.src || sound.customURL) && (
-        <button
-          type="button"
-          onClick={() => {
-            const a = new Audio(sound.src || sound.customURL!);
-            a.play();
-          }}
-          disabled={running}
-          className="ml-1 px-3 py-1 rounded-md border border-blue-500 text-blue-700 bg-blue-50 hover:bg-blue-100 transition"
-        >
-          Play
-        </button>
-      )}
-    </div>
-  );
-}
-
-function Footer() {
-  return (
-    <>
-      <p className="mt-10 text-neutral-500 text-xs text-center">
-        Happy diving!
-      </p>
-      <div className="mt-2 flex items-center justify-center gap-3 text-neutral-500 text-xs">
-        <span>Made by Quest Henkart</span>
-        <a
-          href="https://www.instagram.com/questhenkart"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Instagram"
-        >
-          <Image
-            src="/instagram.svg"
-            alt="instagram icon"
-            width={16}
-            height={16}
-          />
-        </a>
-        <a
-          href="https://www.linkedin.com/in/questh/"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="LinkedIn"
-        >
-          <Image
-            src="/linkedin.svg"
-            alt="linkedin icon"
-            width={16}
-            height={16}
-          />
-        </a>
-      </div>
-    </>
-  );
-}
-
 export default function TimerSoundApp() {
   const [totalSeconds, setTotalSeconds] = useState<number>(
     DEFAULT_TOTAL_SECONDS,
@@ -461,5 +265,199 @@ export default function TimerSoundApp() {
       </div>
       <Footer />
     </div>
+  );
+}
+
+function Header() {
+  return (
+    <div className="flex items-center gap-2 mb-2">
+      <Image src="/timer.svg" alt="timer icon" width={32} height={32} />
+      <h1 className="text-3xl font-bold text-neutral-900 tracking-tight">
+        Freedive Timer
+      </h1>
+    </div>
+  );
+}
+
+type TotalTimeInputProps = {
+  value: string;
+  running: boolean;
+  onChange: (val: string) => void;
+};
+
+function TotalTimeInput({ value, running, onChange }: TotalTimeInputProps) {
+  const isDefault = value === DEFAULT_TOTAL_SECONDS.toString();
+  return (
+    <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center mb-8 w-full">
+      <label
+        htmlFor="totalSeconds"
+        className="font-medium text-neutral-700 shrink-0"
+      >
+        Total Time (seconds):
+      </label>
+      <input
+        id="totalSeconds"
+        type="text"
+        inputMode="numeric"
+        pattern="[0-9]*"
+        min={1}
+        value={isDefault ? "" : value}
+        placeholder={DEFAULT_TOTAL_SECONDS.toString()}
+        disabled={running}
+        onChange={(e) => onChange(e.target.value)}
+        className={`border border-neutral-300 rounded-lg px-3 py-1 w-full sm:w-24 text-lg focus:outline-none focus:ring-2 focus:ring-blue-200 ${isDefault ? "text-neutral-400" : "text-black"}`}
+      />
+    </div>
+  );
+}
+
+type SoundRowProps = {
+  sound: SoundConfig;
+  index: number;
+  running: boolean;
+  totalSeconds: number;
+  onSecondChange: (index: number, val: string) => void;
+  onUpdate: (index: number, patch: Partial<SoundConfig>) => void;
+  onSelectDefault: (index: number, val: string) => void;
+  onUpload: (e: React.ChangeEvent<HTMLInputElement>, index: number) => void;
+  onClearUpload: (index: number) => void;
+  onRemove: (index: number) => void;
+};
+
+function SoundRow({
+  sound,
+  index,
+  running,
+  totalSeconds,
+  onSecondChange,
+  onSelectDefault,
+  onUpload,
+  onClearUpload,
+  onRemove,
+}: SoundRowProps) {
+  const isDefault = sound.secondInput === "1";
+  return (
+    <div className="flex flex-col items-center sm:flex-row sm:flex-wrap sm:items-center gap-2 mb-2 border-b border-neutral-100 pb-2">
+      <label className="text-neutral-600">At</label>
+      <input
+        type="text"
+        inputMode="numeric"
+        pattern="[0-9]*"
+        min={1}
+        max={totalSeconds}
+        value={isDefault ? "" : sound.secondInput}
+        placeholder={"1"}
+        disabled={running}
+        onChange={(e) => onSecondChange(index, e.target.value)}
+        className={`w-full sm:w-16 px-2 border rounded-lg text-base focus:outline-none ${isDefault ? "text-neutral-400" : "text-black"}`}
+      />
+
+      <label className="text-neutral-600">seconds, Play: </label>
+      <select
+        disabled={running}
+        value={sound.sourceType === "default" ? sound.src : ""}
+        onChange={(e) => onSelectDefault(index, e.target.value)}
+        className="px-2 border rounded-lg text-base bg-neutral-50 w-full sm:w-auto text-black"
+      >
+        <option value={DEFAULT_SOUND}>Default</option>
+        {defaultSounds.map((ds) => (
+          <option key={ds.value} value={ds.value}>
+            {ds.label}
+          </option>
+        ))}
+      </select>
+      <span className="text-neutral-400 mx-1">or</span>
+      <input
+        key={sound.customFile ? sound.customFile.name : "new"}
+        id={`custom-file-${index}`}
+        type="file"
+        accept="audio/*"
+        disabled={running}
+        onChange={(e) => onUpload(e, index)}
+        className="hidden"
+      />
+      {!sound.customFile ? (
+        <label
+          htmlFor={`custom-file-${index}`}
+          aria-label="upload custom sound"
+          className="cursor-pointer w-full sm:w-40 text-center text-sm px-2 py-1 bg-blue-50 border border-neutral-300 rounded-md text-blue-700 hover:bg-blue-100"
+        >
+          Choose File
+        </label>
+      ) : (
+        <div className="flex items-center w-full sm:w-auto">
+          <span className="px-2 py-1 text-sm border border-neutral-300 rounded-md bg-neutral-50 mr-1 text-gray-500">
+            {sound.customFile.name}
+          </span>
+          <button
+            type="button"
+            aria-label="remove custom file"
+            onClick={() => onClearUpload(index)}
+            className="text-red-400 font-bold px-2 rounded hover:bg-red-100"
+            disabled={running}
+          >
+            &times;
+          </button>
+        </div>
+      )}
+      <button
+        className="ml-1 text-red-400 font-bold px-2 rounded hover:bg-red-100 transition"
+        disabled={running}
+        onClick={() => onRemove(index)}
+        type="button"
+      >
+        &times;
+      </button>
+      {(sound.src || sound.customURL) && (
+        <button
+          type="button"
+          onClick={() => {
+            const a = new Audio(sound.src || sound.customURL!);
+            a.play();
+          }}
+          disabled={running}
+          className="ml-1 px-3 py-1 rounded-md border border-blue-500 text-blue-700 bg-blue-50 hover:bg-blue-100 transition"
+        >
+          Play
+        </button>
+      )}
+    </div>
+  );
+}
+
+function Footer() {
+  return (
+    <>
+      <p className="mt-10 text-black text-xs text-center">Happy diving!</p>
+      <div className="mt-2 flex items-center justify-center gap-3 text-neutral-500 text-xs">
+        <span>Made by Quest Henkart</span>
+        <a
+          href="https://www.instagram.com/questhenkart"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Instagram"
+        >
+          <Image
+            src="/instagram.svg"
+            alt="instagram icon"
+            width={16}
+            height={16}
+          />
+        </a>
+        <a
+          href="https://www.linkedin.com/in/questh/"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="LinkedIn"
+        >
+          <Image
+            src="/linkedin.svg"
+            alt="linkedin icon"
+            width={16}
+            height={16}
+          />
+        </a>
+      </div>
+    </>
   );
 }
