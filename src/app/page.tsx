@@ -48,6 +48,51 @@ export default function TimerSoundApp() {
   );
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  const STORAGE_KEY = "freedive-timer-state";
+
+  React.useEffect(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        setTotalSecondsInput(parsed.totalSecondsInput ?? "");
+        setTotalSeconds(
+          parsed.totalSeconds ?? DEFAULT_TOTAL_SECONDS,
+        );
+        setIncludeCountdown(parsed.includeCountdown ?? false);
+        if (Array.isArray(parsed.sounds)) {
+          setSounds(parsed.sounds);
+        }
+      }
+    } catch {
+      /* ignore malformed data */
+    }
+  }, []);
+
+  React.useEffect(() => {
+    const minimalSounds = sounds.map(
+      ({ id, second, secondInput, label, src, sourceType }) => ({
+        id,
+        second,
+        secondInput,
+        label,
+        src,
+        sourceType,
+      }),
+    );
+    const data = {
+      totalSecondsInput,
+      totalSeconds,
+      includeCountdown,
+      sounds: minimalSounds,
+    };
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch {
+      /* ignore write errors */
+    }
+  }, [totalSecondsInput, totalSeconds, sounds, includeCountdown]);
+
   const handleTotalSecondsChange = (val: string) => {
     const digits = val.replace(/\D/g, "");
     setTotalSecondsInput(digits);

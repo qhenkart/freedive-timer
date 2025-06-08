@@ -23,6 +23,7 @@ beforeAll(() => {
 
 beforeEach(() => {
   (global.speechSynthesis.speak as jest.Mock).mockClear();
+  localStorage.clear();
 });
 
 describe("TimerSoundApp", () => {
@@ -211,5 +212,48 @@ describe("TimerSoundApp", () => {
     });
     expect(playMock).toHaveBeenCalledTimes(1);
     jest.useRealTimers();
+  });
+
+  it("saves configuration to localStorage", async () => {
+    render(<TimerSoundApp />);
+    fireEvent.click(screen.getByRole("button", { name: /add sound/i }));
+    fireEvent.change(screen.getByRole("combobox"), {
+      target: { value: "/sounds/ding.wav" },
+    });
+    fireEvent.change(screen.getByLabelText(/total time/i), {
+      target: { value: "90" },
+    });
+    await waitFor(() => {
+      const stored = JSON.parse(
+        localStorage.getItem("freedive-timer-state") || "{}",
+      );
+      expect(stored.totalSeconds).toBe(90);
+      expect(stored.sounds.length).toBe(1);
+    });
+  });
+
+  it("loads configuration from localStorage", () => {
+    const stored = {
+      totalSecondsInput: "80",
+      totalSeconds: 80,
+      includeCountdown: true,
+      sounds: [
+        {
+          id: "a",
+          second: 10,
+          secondInput: "10",
+          label: "Sound",
+          src: "/sounds/ding.wav",
+          sourceType: "default",
+        },
+      ],
+    };
+    localStorage.setItem("freedive-timer-state", JSON.stringify(stored));
+    render(<TimerSoundApp />);
+    const input = screen.getByLabelText(/total time/i) as HTMLInputElement;
+    expect(input.value).toBe("80");
+    const select = screen.getByRole("combobox") as HTMLSelectElement;
+    expect(select.value).toBe("/sounds/ding.wav");
+    expect(screen.getByLabelText(/include countdown/i)).toBeChecked();
   });
 });
