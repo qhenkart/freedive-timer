@@ -12,6 +12,12 @@ const DEFAULT_SOUND = "/sounds/beep.wav";
 
 const DEFAULT_TOTAL_SECONDS = 60;
 
+function formatTime(sec: number) {
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
 type SoundConfig = {
   second: number;
   secondInput: string;
@@ -31,7 +37,13 @@ export default function TimerSoundApp() {
   const [running, setRunning] = useState(false);
   const [sounds, setSounds] = useState<SoundConfig[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [includeCountdown, setIncludeCountdown] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownTimeouts = useRef<NodeJS.Timeout[]>([]);
+  const [countdownRemaining, setCountdownRemaining] = useState<number | null>(
+    null,
+  );
+  const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleTotalSecondsChange = (val: string) => {
     const digits = val.replace(/\D/g, "");
@@ -131,11 +143,14 @@ export default function TimerSoundApp() {
   };
 
   // Timer logic
-  const startTimer = () => {
-    if (running) return;
+  const startMainTimer = () => {
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
+    setCountdownRemaining(null);
     setCurrentSecond(0);
     setRunning(true);
-    setError(null);
     intervalRef.current = setInterval(() => {
       setCurrentSecond((prev) => {
         if (prev === null) return 0;
@@ -157,7 +172,54 @@ export default function TimerSoundApp() {
     }, 1000);
   };
 
+  const startTimer = () => {
+    if (running) return;
+    setError(null);
+    if (includeCountdown) {
+      setRunning(true);
+      setCountdownRemaining(120);
+      countdownIntervalRef.current = setInterval(() => {
+        setCountdownRemaining((prev) => (prev === null ? null : prev - 1));
+      }, 1000);
+      const schedule = [
+        { delay: 0, text: "two minutes" },
+        { delay: 30000, text: "one minute 30" },
+        { delay: 60000, text: "one minute" },
+        { delay: 90000, text: "30 seconds" },
+        { delay: 100000, text: "20 seconds" },
+        { delay: 110000, text: "10 seconds" },
+        { delay: 115000, text: "5" },
+        { delay: 116000, text: "4" },
+        { delay: 117000, text: "3" },
+        { delay: 118000, text: "2" },
+        { delay: 119000, text: "1" },
+        { delay: 120000, text: "official top" },
+      ];
+      schedule.forEach(({ delay, text }) => {
+        const t = setTimeout(() => {
+          window.speechSynthesis.speak(
+            new SpeechSynthesisUtterance(text),
+          );
+        }, delay);
+        countdownTimeouts.current.push(t);
+      });
+      const startTimeout = setTimeout(() => {
+        startMainTimer();
+      }, 120000);
+      countdownTimeouts.current.push(startTimeout);
+    } else {
+      startMainTimer();
+    }
+  };
+
   const stopTimer = () => {
+    countdownTimeouts.current.forEach((t) => clearTimeout(t));
+    countdownTimeouts.current = [];
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
+    setCountdownRemaining(null);
     if (intervalRef.current) clearInterval(intervalRef.current);
     setRunning(false);
     setCurrentSecond(null);
@@ -222,8 +284,24 @@ export default function TimerSoundApp() {
           </button>
         </div>
 
+        <div className="mt-4 flex items-center gap-2">
+          <input
+            id="includeCountdown"
+            type="checkbox"
+            className="h-4 w-4"
+            checked={includeCountdown}
+            disabled={running}
+            onChange={(e) => setIncludeCountdown(e.target.checked)}
+          />
+          <label htmlFor="includeCountdown" className="text-neutral-700">
+            Include countdown
+          </label>
+        </div>
+
         <div className="text-center text-3xl font-mono py-7 tracking-wider select-none">
-          {currentSecond !== null
+          {countdownRemaining !== null
+            ? `Countdown: ${formatTime(countdownRemaining)}`
+            : currentSecond !== null
             ? `Elapsed: ${currentSecond}s / ${totalSeconds}s`
             : "Timer Ready"}
         </div>

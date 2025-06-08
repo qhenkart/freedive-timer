@@ -13,6 +13,16 @@ beforeAll(() => {
   global.Audio = jest.fn().mockImplementation(() => ({ play: jest.fn() }));
   // Mock createObjectURL used for custom sounds
   global.URL.createObjectURL = jest.fn();
+  // Mock speech synthesis for countdown
+  global.speechSynthesis = { speak: jest.fn() } as any;
+  // Mock SpeechSynthesisUtterance constructor
+  global.SpeechSynthesisUtterance = function (this: any, text: string) {
+    this.text = text;
+  } as any;
+});
+
+beforeEach(() => {
+  (global.speechSynthesis.speak as jest.Mock).mockClear();
 });
 
 describe("TimerSoundApp", () => {
@@ -134,5 +144,58 @@ describe("TimerSoundApp", () => {
     fireEvent.click(screen.getByRole("button", { name: /add sound/i }));
     const playButton = screen.getByRole("button", { name: /play/i });
     expect(playButton.parentElement).toHaveClass("sm:flex-nowrap");
+  });
+
+  it("shows countdown option", () => {
+    render(<TimerSoundApp />);
+    const checkbox = screen.getByLabelText(/include countdown/i);
+    expect(checkbox).toBeInTheDocument();
+  });
+
+  it("starts countdown when option enabled", () => {
+    jest.useFakeTimers();
+    render(<TimerSoundApp />);
+    fireEvent.click(screen.getByRole("button", { name: /add sound/i }));
+    fireEvent.change(screen.getByRole("combobox"), {
+      target: { value: "/sounds/ding.wav" },
+    });
+    fireEvent.click(screen.getByLabelText(/include countdown/i));
+    fireEvent.click(screen.getByRole("button", { name: /start/i }));
+    act(() => {
+      jest.advanceTimersByTime(0);
+    });
+    expect(screen.getByText(/countdown: 2:00/i)).toBeInTheDocument();
+    expect(global.speechSynthesis.speak).toHaveBeenCalledTimes(1);
+    act(() => {
+      jest.advanceTimersByTime(30000);
+    });
+    expect(screen.getByText(/countdown: 1:30/i)).toBeInTheDocument();
+    act(() => {
+      jest.advanceTimersByTime(90000);
+    });
+    expect(screen.queryByText(/countdown:/i)).not.toBeInTheDocument();
+    expect(global.speechSynthesis.speak).toHaveBeenCalledTimes(12);
+    act(() => {
+      jest.advanceTimersByTime(1000);
+    });
+    expect(screen.getByText(/elapsed: 1s/i)).toBeInTheDocument();
+    jest.useRealTimers();
+  });
+
+  it("starts timer immediately when countdown disabled", () => {
+    jest.useFakeTimers();
+    render(<TimerSoundApp />);
+    fireEvent.click(screen.getByRole("button", { name: /add sound/i }));
+    fireEvent.change(screen.getByRole("combobox"), {
+      target: { value: "/sounds/ding.wav" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /start/i }));
+    expect(global.speechSynthesis.speak).not.toHaveBeenCalled();
+    expect(screen.queryByText(/countdown:/i)).not.toBeInTheDocument();
+    act(() => {
+      jest.advanceTimersByTime(1000);
+    });
+    expect(screen.getByText(/elapsed: 1s/i)).toBeInTheDocument();
+    jest.useRealTimers();
   });
 });
