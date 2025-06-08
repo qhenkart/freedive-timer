@@ -11,5 +11,4 @@ This app is a fully client-side, browser-based visual timer that allows users to
 All code updates must have tests, any bug fixes must have tests. 
 
 run tests, lint before submitting
-run npm run build to ensure it compiles before submitting
 
