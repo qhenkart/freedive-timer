@@ -1,6 +1,7 @@
 "use client";
 import React, { useRef, useState } from "react";
 import Image from "next/image";
+import { saveSound, deleteSound, getSound } from "../idb";
 
 const defaultSounds = [
   { label: "Ding", value: "/sounds/ding.wav" },
@@ -51,22 +52,39 @@ export default function TimerSoundApp() {
   const STORAGE_KEY = "freedive-timer-state";
 
   React.useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        setTotalSecondsInput(parsed.totalSecondsInput ?? "");
-        setTotalSeconds(
-          parsed.totalSeconds ?? DEFAULT_TOTAL_SECONDS,
-        );
-        setIncludeCountdown(parsed.includeCountdown ?? false);
-        if (Array.isArray(parsed.sounds)) {
-          setSounds(parsed.sounds);
+    const load = async () => {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          setTotalSecondsInput(parsed.totalSecondsInput ?? "");
+          setTotalSeconds(parsed.totalSeconds ?? DEFAULT_TOTAL_SECONDS);
+          setIncludeCountdown(parsed.includeCountdown ?? false);
+          if (Array.isArray(parsed.sounds)) {
+            const loaded = await Promise.all(
+              parsed.sounds.map(async (s: SoundConfig) => {
+                if (s.sourceType === "custom") {
+                  const data = await getSound(s.id);
+                  if (data) {
+                    const url = URL.createObjectURL(data.blob);
+                    s.customURL = url;
+                    s.customFile = new File([data.blob], data.name, {
+                      type: data.blob.type,
+                    });
+                    s.src = url;
+                  }
+                }
+                return s;
+              }),
+            );
+            setSounds(loaded);
+          }
         }
+      } catch {
+        /* ignore malformed data */
       }
-    } catch {
-      /* ignore malformed data */
-    }
+    };
+    load();
   }, []);
 
   React.useEffect(() => {
@@ -76,7 +94,7 @@ export default function TimerSoundApp() {
         second,
         secondInput,
         label,
-        src,
+        src: sourceType === "default" ? src : undefined,
         sourceType,
       }),
     );
@@ -116,16 +134,18 @@ export default function TimerSoundApp() {
     const file = e.target.files?.[0];
     if (!file) return;
     const url = URL.createObjectURL(file);
+    const id = sounds[index]?.id;
+    if (id) saveSound(id, { name: file.name, blob: file });
     setSounds((prev) =>
       prev.map((s, i) =>
         i === index
           ? {
-              ...s,
-              customFile: file,
-              customURL: url,
-              src: url,
-              sourceType: "custom",
-            }
+            ...s,
+            customFile: file,
+            customURL: url,
+            src: url,
+            sourceType: "custom",
+          }
           : s,
       ),
     );
@@ -133,16 +153,18 @@ export default function TimerSoundApp() {
 
   // Select a default sound
   const selectDefaultSound = (index: number, value: string) => {
+    const id = sounds[index]?.id;
+    if (id) deleteSound(id);
     setSounds((prev) =>
       prev.map((s, i) =>
         i === index
           ? {
-              ...s,
-              src: value,
-              sourceType: "default",
-              customFile: undefined,
-              customURL: undefined,
-            }
+            ...s,
+            src: value,
+            sourceType: "default",
+            customFile: undefined,
+            customURL: undefined,
+          }
           : s,
       ),
     );
@@ -174,21 +196,27 @@ export default function TimerSoundApp() {
       prev.map((s) => (s.id === id ? { ...s, isRemoving: true } : s)),
     );
     setTimeout(() => {
+      const sound = sounds.find((s) => s.id === id);
+      if (sound?.sourceType === "custom") {
+        deleteSound(id);
+      }
       setSounds((prev) => prev.filter((s) => s.id !== id));
     }, 200);
   };
 
   const clearCustomFile = (index: number) => {
+    const id = sounds[index]?.id;
+    if (id) deleteSound(id);
     setSounds((prev) =>
       prev.map((s, i) =>
         i === index
           ? {
-              ...s,
-              customFile: undefined,
-              customURL: undefined,
-              src: undefined,
-              sourceType: undefined,
-            }
+            ...s,
+            customFile: undefined,
+            customURL: undefined,
+            src: undefined,
+            sourceType: undefined,
+          }
           : s,
       ),
     );
@@ -364,11 +392,10 @@ export default function TimerSoundApp() {
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center w-full">
           <button
-            className={`w-full sm:w-auto px-7 py-2 rounded-lg font-bold transition ${
-              canStart && !running
+            className={`w-full sm:w-auto px-7 py-2 rounded-lg font-bold transition ${canStart && !running
                 ? "bg-blue-600 text-white hover:bg-blue-700"
                 : "bg-neutral-200 text-neutral-400 cursor-not-allowed"
-            }`}
+              }`}
             onClick={startTimer}
             disabled={running || !canStart}
           >
@@ -463,11 +490,8 @@ function SoundRow({
   const isDefault = sound.secondInput === "";
   return (
     <li
-      className={
-        `relative flex flex-col sm:flex-row items-center sm:items-center gap-5 sm:gap-2 p-5 sm:p-2 rounded-2xl sm:rounded-lg shadow-lg sm:shadow-none bg-white max-w-xs sm:max-w-none mx-auto my-4 sm:mx-0 sm:my-0 transition-all duration-200 w-full ${
-          sound.isNew ? "fade-in" : ""
-        } ${sound.isRemoving ? "fade-out" : ""}`
-      }
+      className={`relative flex flex-col sm:flex-row items-center sm:items-center gap-5 sm:gap-2 p-5 sm:p-2 rounded-2xl sm:rounded-lg shadow-lg sm:shadow-none bg-white max-w-xs sm:max-w-none mx-auto my-4 sm:mx-0 sm:my-0 transition-all duration-200 w-full ${sound.isNew ? "fade-in" : ""
+        } ${sound.isRemoving ? "fade-out" : ""}`}
     >
       {/* Remove button */}
       <button
