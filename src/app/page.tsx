@@ -261,6 +261,28 @@ export default function TimerSoundApp() {
   const startTimer = () => {
     if (running) return;
     setError(null);
+    // Prime audio to satisfy autoplay policies
+    sounds.forEach((s) => {
+      if (!s.src) return;
+      try {
+        const a = new Audio(s.src);
+        a.muted = true;
+        const p = a.play();
+        if (p instanceof Promise) {
+          p
+            .then(() => {
+              a.pause();
+              a.currentTime = 0;
+              a.muted = false;
+            })
+            .catch(() => {
+              /* ignore */
+            });
+        }
+      } catch {
+        /* ignore errors */
+      }
+    });
     if (includeCountdown) {
       setRunning(true);
       setCountdownRemaining(120);

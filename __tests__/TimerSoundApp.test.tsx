@@ -215,7 +215,14 @@ describe("TimerSoundApp", () => {
   it("plays the first sound trigger", () => {
     jest.useFakeTimers();
     const playMock = jest.fn();
-    (global.Audio as jest.Mock).mockImplementation(() => ({ play: playMock }));
+    (global.Audio as jest.Mock).mockImplementation(() => ({
+      play: playMock,
+      pause: jest.fn(),
+      muted: false,
+      set muted(val: boolean) {
+        /* noop */
+      },
+    }));
     render(<TimerSoundApp />);
     fireEvent.click(screen.getByRole("button", { name: /add sound/i }));
     fireEvent.change(screen.getByRole("combobox"), {
@@ -225,8 +232,24 @@ describe("TimerSoundApp", () => {
     act(() => {
       jest.advanceTimersByTime(1000);
     });
-    expect(playMock).toHaveBeenCalledTimes(1);
+    expect(playMock).toHaveBeenCalledTimes(2);
     jest.useRealTimers();
+  });
+
+  it("preloads audio on start", () => {
+    const playMock = jest.fn();
+    (global.Audio as jest.Mock).mockImplementation(() => ({
+      play: playMock,
+      pause: jest.fn(),
+      muted: false,
+      set muted(val: boolean) {
+        /* noop */
+      },
+    }));
+    render(<TimerSoundApp />);
+    fireEvent.click(screen.getByRole("button", { name: /add sound/i }));
+    fireEvent.click(screen.getByRole("button", { name: /start/i }));
+    expect(playMock).toHaveBeenCalled();
   });
 
   it("saves configuration to localStorage", async () => {
