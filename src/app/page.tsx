@@ -140,12 +140,12 @@ export default function TimerSoundApp() {
       prev.map((s, i) =>
         i === index
           ? {
-            ...s,
-            customFile: file,
-            customURL: url,
-            src: url,
-            sourceType: "custom",
-          }
+              ...s,
+              customFile: file,
+              customURL: url,
+              src: url,
+              sourceType: "custom",
+            }
           : s,
       ),
     );
@@ -159,12 +159,12 @@ export default function TimerSoundApp() {
       prev.map((s, i) =>
         i === index
           ? {
-            ...s,
-            src: value,
-            sourceType: "default",
-            customFile: undefined,
-            customURL: undefined,
-          }
+              ...s,
+              src: value,
+              sourceType: "default",
+              customFile: undefined,
+              customURL: undefined,
+            }
           : s,
       ),
     );
@@ -211,12 +211,12 @@ export default function TimerSoundApp() {
       prev.map((s, i) =>
         i === index
           ? {
-            ...s,
-            customFile: undefined,
-            customURL: undefined,
-            src: undefined,
-            sourceType: undefined,
-          }
+              ...s,
+              customFile: undefined,
+              customURL: undefined,
+              src: undefined,
+              sourceType: undefined,
+            }
           : s,
       ),
     );
@@ -392,10 +392,11 @@ export default function TimerSoundApp() {
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center w-full">
           <button
-            className={`w-full sm:w-auto px-7 py-2 rounded-lg font-bold transition ${canStart && !running
+            className={`w-full sm:w-auto px-7 py-2 rounded-lg font-bold transition ${
+              canStart && !running
                 ? "bg-blue-600 text-white hover:bg-blue-700"
                 : "bg-neutral-200 text-neutral-400 cursor-not-allowed"
-              }`}
+            }`}
             onClick={startTimer}
             disabled={running || !canStart}
           >
@@ -423,7 +424,7 @@ export default function TimerSoundApp() {
 function Header() {
   return (
     <div className="flex items-center gap-2 mb-2">
-      <Image src="/timer.svg" alt="timer icon" width={32} height={32} />
+      <Image src="/divericon.png" alt="timer icon" width={32} height={32} />
       <h1 className="text-3xl font-bold text-neutral-900 tracking-tight">
         Freedive Timer
       </h1>
@@ -490,8 +491,9 @@ function SoundRow({
   const isDefault = sound.secondInput === "";
   return (
     <li
-      className={`relative flex flex-col sm:flex-row items-center sm:items-center gap-5 sm:gap-2 p-5 sm:p-2 rounded-2xl sm:rounded-lg shadow-lg sm:shadow-none bg-white max-w-xs sm:max-w-none mx-auto my-4 sm:mx-0 sm:my-0 transition-all duration-200 w-full ${sound.isNew ? "fade-in" : ""
-        } ${sound.isRemoving ? "fade-out" : ""}`}
+      className={`relative flex flex-col sm:flex-row items-center sm:items-center gap-5 sm:gap-2 p-5 sm:p-2 rounded-2xl sm:rounded-lg shadow-lg sm:shadow-none bg-white max-w-xs sm:max-w-none mx-auto my-4 sm:mx-0 sm:my-0 transition-all duration-200 w-full ${
+        sound.isNew ? "fade-in" : ""
+      } ${sound.isRemoving ? "fade-out" : ""}`}
     >
       {/* Remove button */}
       <button
