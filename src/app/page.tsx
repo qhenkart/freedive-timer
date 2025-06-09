@@ -48,6 +48,7 @@ export default function TimerSoundApp() {
     null,
   );
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const audioMap = useRef<Map<string, HTMLAudioElement>>(new Map());
 
   const STORAGE_KEY = "freedive-timer-state";
 
@@ -244,7 +245,14 @@ export default function TimerSoundApp() {
         // Play any sound scheduled for this second
         sounds.forEach((s) => {
           if (s.second === next && s.src) {
-            const audio = new Audio(s.src);
+            let audio = audioMap.current.get(s.id);
+            if (!audio) {
+              audio = new Audio(s.src);
+              audioMap.current.set(s.id, audio);
+            } else if (audio.src !== s.src) {
+              audio.src = s.src;
+            }
+            audio.currentTime = 0;
             audio.play();
           }
         });
@@ -264,16 +272,22 @@ export default function TimerSoundApp() {
     // Prime audio to satisfy autoplay policies
     sounds.forEach((s) => {
       if (!s.src) return;
+      let audio = audioMap.current.get(s.id);
+      if (!audio) {
+        audio = new Audio(s.src);
+        audioMap.current.set(s.id, audio);
+      } else if (audio.src !== s.src) {
+        audio.src = s.src;
+      }
       try {
-        const a = new Audio(s.src);
-        a.muted = true;
-        const p = a.play();
+        audio.muted = true;
+        const p = audio.play();
         if (p instanceof Promise) {
           p
             .then(() => {
-              a.pause();
-              a.currentTime = 0;
-              a.muted = false;
+              audio.pause();
+              audio.currentTime = 0;
+              audio.muted = false;
             })
             .catch(() => {
               /* ignore */
@@ -329,6 +343,10 @@ export default function TimerSoundApp() {
     if (intervalRef.current) clearInterval(intervalRef.current);
     setRunning(false);
     setCurrentSecond(null);
+    audioMap.current.forEach((a) => {
+      a.pause();
+      a.currentTime = 0;
+    });
   };
 
   // Validation

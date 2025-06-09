@@ -252,6 +252,45 @@ describe("TimerSoundApp", () => {
     expect(playMock).toHaveBeenCalled();
   });
 
+  it("plays multiple sound triggers at the correct times", () => {
+    jest.useFakeTimers();
+    const playMock = jest.fn();
+    (global.Audio as jest.Mock).mockImplementation(() => ({
+      play: playMock,
+      pause: jest.fn(),
+      muted: false,
+      set muted(val: boolean) {
+        /* noop */
+      },
+    }));
+    render(<TimerSoundApp />);
+    // First sound at 1s (default)
+    fireEvent.click(screen.getByRole("button", { name: /add sound/i }));
+    fireEvent.change(screen.getByRole("combobox"), {
+      target: { value: "/sounds/ding.wav" },
+    });
+    // Second sound at 2s
+    fireEvent.click(screen.getByRole("button", { name: /add sound/i }));
+    const selects = screen.getAllByRole("combobox");
+    fireEvent.change(selects[1], { target: { value: "/sounds/ding.wav" } });
+    const secondInputs = screen.getAllByPlaceholderText("1");
+    fireEvent.change(secondInputs[1], { target: { value: "2" } });
+
+    fireEvent.click(screen.getByRole("button", { name: /start/i }));
+    // After 1 second the first sound should play
+    act(() => {
+      jest.advanceTimersByTime(1000);
+    });
+    expect(playMock).toHaveBeenCalledTimes(3); // 2 preload + first sound
+
+    // After another second the second sound should play
+    act(() => {
+      jest.advanceTimersByTime(1000);
+    });
+    expect(playMock).toHaveBeenCalledTimes(4);
+    jest.useRealTimers();
+  });
+
   it("saves configuration to localStorage", async () => {
     render(<TimerSoundApp />);
     fireEvent.click(screen.getByRole("button", { name: /add sound/i }));
