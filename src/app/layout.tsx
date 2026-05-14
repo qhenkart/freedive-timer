@@ -27,19 +27,32 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
 };
 
+// Runs synchronously before paint so the right theme class is on <html>
+// — eliminates a flash-of-wrong-theme on reload.
+const themeInitScript = `
+(function() {
+  try {
+    var stored = localStorage.getItem('freedive-timer-theme');
+    var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var theme = stored === 'light' || stored === 'dark' ? stored : (prefersDark ? 'dark' : 'light');
+    if (theme === 'dark') document.documentElement.classList.add('dark');
+  } catch (e) {}
+})();
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Freedive Timer" />
-
-        <meta name="theme-color" content="#000000" />
+        <meta name="theme-color" content="#020617" />
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
