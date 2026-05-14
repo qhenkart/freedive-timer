@@ -206,7 +206,7 @@ export function SoundRow({
                 if (p && typeof p.catch === "function") p.catch(() => {});
               }}
               disabled={running}
-              className="shrink-0 ml-auto sm:ml-0 inline-flex items-center justify-center w-9 h-9 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 rounded-lg text-sm font-medium transition hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="shrink-0 inline-flex items-center justify-center min-w-9 px-2.5 sm:px-3 py-1.5 rounded-lg text-sm font-medium transition hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
               style={{
                 background: "var(--accent)",
                 color: "white",
